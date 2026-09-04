@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111111" />
+  <title>HS Coaching — Bibliothèque O2</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">HS</span><div><strong>HS COACHING</strong><small>Bibliothèque O2</small></div></div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">BIBLIOTHÈQUE FITNESS</p>
+      <h1>Ton exercice.<br><span>Ta technique.</span></h1>
+      <p>Scanne un QR code ou recherche directement un exercice pour accéder aux consignes, muscles sollicités et points techniques.</p>
+      <div class="search"><span>⌕</span><input id="search" type="search" placeholder="Rechercher un exercice…" autocomplete="off" /></div>
+    </section>
+
+    <section class="categories" aria-label="Catégories">
+      <button class="chip active" data-category="all">Tous</button>
+      <button class="chip" data-category="jambes">Jambes</button>
+      <button class="chip" data-category="dos">Dos</button>
+      <button class="chip" data-category="pectoraux">Pectoraux</button>
+      <button class="chip" data-category="epaules">Épaules</button>
+      <button class="chip" data-category="bras">Bras</button>
+      <button class="chip" data-category="abdos">Abdos</button>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Exercices</h2><span id="count"></span></div>
+      <div id="exercise-grid" class="grid"></div>
+      <p id="empty" class="empty" hidden>Aucun exercice trouvé.</p>
+    </section>
+  </main>
+
+  <dialog id="exercise-modal">
+    <button class="close" id="close-modal" aria-label="Fermer">×</button>
+    <div id="modal-content"></div>
+  </dialog>
+
+  <footer>HS Coaching · Régularité & dépassement de soi</footer>
+  <script src="app.js"></script>
+</body>
+</html>
