@@ -1,0 +1,38 @@
+// Traductions françaises éditoriales — lot 4
+// Priorité aux termes naturels utilisés en coaching sportif.
+const HS_FR_BATCH4 = {
+  'band pull apart': {name:'Écarté avec élastique'},
+  'cable pallof press': {name:'Pallof press à la poulie'},
+  'cable tricep kickback': {name:'Extension triceps arrière à la poulie'},
+  'hex bar deadlift': {name:'Soulevé de terre à la trap bar'},
+  'high knees': {name:'Montées de genoux'},
+  'rack pull': {name:'Soulevé de terre partiel sur rack'},
+  'rear delt fly': {name:'Écarté inversé'},
+  'suitcase carry': {name:'Marche du fermier unilatérale'},
+  'strict curl': {name:'Curl strict'},
+  'rings inverted row': {name:'Rowing inversé aux anneaux'},
+  'one arm kettlebell row': {name:'Rowing unilatéral au kettlebell'},
+  'one arm lat pulldown': {name:'Tirage vertical unilatéral'},
+  'machine back extension': {name:'Extension lombaire à la machine'},
+  'dumbbell upright row': {name:'Tirage menton aux haltères'},
+  'lying leg raise': {name:'Relevé de jambes au sol'},
+  'hanging knee raise': {name:'Relevé de genoux suspendu'},
+  'split squat': {name:'Squat fendu'},
+  'running': {name:'Course à pied'},
+  'svend press': {name:'Svend press'},
+  'incline bench press': {name:'Développé incliné à la barre'},
+  'incline bench ez bar press': {name:'Développé incliné à la barre EZ'},
+  'single arm machine shoulder press': {name:'Développé épaules unilatéral à la machine'},
+  'single arm plate loaded lateral raise': {name:'Élévation latérale unilatérale à la machine'},
+  'banded hip thrust': {name:'Hip thrust avec élastique'},
+  'banded kneeling hip thrust': {name:'Hip thrust à genoux avec élastique'},
+  'db sumo squat': {name:'Squat sumo aux haltères'},
+  'machine shoulder press': {name:'Développé épaules à la machine'},
+  'one arm kettlebell shoulder press': {name:'Développé épaules unilatéral au kettlebell'},
+  'one arm kettlebell push press': {name:'Push press unilatéral au kettlebell'},
+  'one arm kettlebell bottoms-up press': {name:'Développé bottoms-up unilatéral au kettlebell'},
+  'double kettlebell overhead press': {name:'Développé épaules aux kettlebells'},
+  'double kettlebell push press': {name:'Push press aux kettlebells'},
+  'kettlebell squat': {name:'Squat au kettlebell'}
+};
+Object.assign(window.HS_FR = window.HS_FR || {}, HS_FR_BATCH4);
