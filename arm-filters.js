@@ -25,17 +25,13 @@
   function applyArmFilter() {
     requestAnimationFrame(() => {
       const cards = [...grid.querySelectorAll('.card')];
-      if (!selectedArm) return cards.forEach(c => c.style.display = '');
-
       cards.forEach(card => {
         const id = String(card.dataset.id || '');
         const muscles = muscleById.get(id) || [];
-        const visible = ready && muscles.some(m =>
-          m === selectedArm || m.includes(selectedArm)
-        );
-        card.style.display = visible ? '' : 'none';
+        const visible = !selectedArm || (ready && muscles.some(m => m === selectedArm || m.includes(selectedArm)));
+        card.dataset.armHidden = visible ? '0' : '1';
+        if (!visible) card.style.display = 'none';
       });
-
       const visible = cards.filter(c => c.style.display !== 'none').length;
       const count = document.querySelector('#count');
       if (count) count.textContent = `${visible} exercice${visible > 1 ? 's' : ''}`;
@@ -47,7 +43,6 @@
   function installArmButtons() {
     const old = categories.querySelector('[data-category="bras"]');
     if (!old || categories.querySelector('.hs-arm-filter')) return;
-
     old.style.display = 'none';
 
     const makeButton = (label, muscle) => {
@@ -56,19 +51,16 @@
       b.type = 'button';
       b.textContent = label;
       b.dataset.arm = muscle;
-      b.onclick = (event) => {
+      b.onclick = event => {
         event.preventDefault();
         event.stopPropagation();
         selectedArm = selectedArm === muscle ? null : muscle;
-        categories.querySelectorAll('.hs-arm-filter').forEach(x =>
-          x.classList.toggle('active', x.dataset.arm === selectedArm)
-        );
+        categories.querySelectorAll('.hs-arm-filter').forEach(x => x.classList.toggle('active', x.dataset.arm === selectedArm));
         old.click();
-        applyArmFilter();
+        setTimeout(applyArmFilter, 20);
       };
       return b;
     };
-
     old.after(makeButton('Biceps', 'biceps'), makeButton('Triceps', 'triceps'));
   }
 
@@ -76,15 +68,15 @@
     installArmButtons();
     if (selectedArm) applyArmFilter();
   });
-
   observer.observe(categories, { childList: true, subtree: true });
   observer.observe(grid, { childList: true, subtree: true });
 
-  categories.addEventListener('click', (event) => {
+  categories.addEventListener('click', event => {
     const button = event.target.closest('button');
     if (!button || button.classList.contains('hs-arm-filter')) return;
     selectedArm = null;
     categories.querySelectorAll('.hs-arm-filter').forEach(x => x.classList.remove('active'));
+    grid.querySelectorAll('.card').forEach(c => c.dataset.armHidden = '0');
   }, true);
 
   installArmButtons();
