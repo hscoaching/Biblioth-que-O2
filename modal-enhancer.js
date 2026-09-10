@@ -2,14 +2,16 @@
   const modal=document.querySelector('#exercise-modal'), content=document.querySelector('#modal-content');
   if(!modal||!content)return;
   const DATA_URL='https://exercise-dataset.com/exercises.json';
-  const muscles={quadriceps:'Quadriceps',hamstrings:'Ischio-jambiers',gluteus_maximus:'Grand fessier',glutes:'Fessiers',calves:'Mollets',adductors:'Adducteurs',abductors:'Abducteurs',latissimus_dorsi:'Grand dorsal',trapezius:'Trapèzes',rhomboids:'Rhomboïdes',erector_spinae:'Érecteurs du rachis',lower_back:'Lombaires',pectoralis_major:'Grand pectoral',pectoralis_minor:'Petit pectoral',deltoids:'Deltoïdes',anterior_deltoid:'Deltoïde antérieur',lateral_deltoid:'Deltoïde moyen',rear_deltoid:'Deltoïde postérieur',biceps:'Biceps',brachialis:'Brachial',triceps:'Triceps',forearms:'Avant-bras',rectus_abdominis:'Grand droit',obliques:'Obliques',transverse_abdominis:'Transverse',core:'Ceinture abdominale',hip_flexors:'Fléchisseurs de hanche',serratus_anterior:'Dentelé antérieur',rotator_cuff:'Coiffe des rotateurs',tibialis_anterior:'Tibial antérieur'};
-  const equipment={bodyweight:'Poids du corps',barbell:'Barre',dumbbell:'Haltères',cable:'Poulie',machine:'Machine',kettlebell:'Kettlebell',band:'Élastique',plate:'Disque',ez_bar:'Barre EZ',smith_machine:'Smith machine'};
+  const muscles={quadriceps:'Quadriceps',hamstrings:'Ischio-jambiers',gluteus_maximus:'Grand fessier',glutes:'Fessiers',calves:'Mollets',adductors:'Adducteurs',abductors:'Abducteurs',latissimus_dorsi:'Grand dorsal',trapezius:'Trapèzes',rhomboids:'Rhomboïdes',erector_spinae:'Érecteurs du rachis',lower_back:'Lombaires',pectoralis_major:'Grand pectoral',pectoralis_minor:'Petit pectoral',deltoids:'Deltoïdes',anterior_deltoid:'Deltoïde antérieur',lateral_deltoid:'Deltoïde moyen',rear_deltoid:'Deltoïde postérieur',biceps:'Biceps',brachialis:'Brachial',triceps:'Triceps',forearms:'Avant-bras',forearm_flexors:'Fléchisseurs de l’avant-bras',rectus_abdominis:'Grand droit',obliques:'Obliques',transverse_abdominis:'Transverse',core:'Ceinture abdominale',hip_flexors:'Fléchisseurs de hanche',serratus_anterior:'Dentelé antérieur',rotator_cuff:'Coiffe des rotateurs',tibialis_anterior:'Tibial antérieur'};
+  const equipment={bodyweight:'Poids du corps',barbell:'Barre',dumbbell:'Haltères',cable:'Poulie',machine:'Machine',leg_press:'Presse à cuisses',pull_up_bar:'Barre de traction',dip_bars:'Barres parallèles',kettlebell:'Kettlebell',band:'Élastique',plate:'Disque',ez_bar:'Barre EZ',smith_machine:'Smith machine',bench:'Banc',trap_bar:'Barre hexagonale',rings:'Anneaux'};
   const advice={
     'barbell-bench-press':'Installe tes omoplates en arrière et vers le bas, garde les pieds fermement au sol et contrôle la descente. La barre doit toucher le bas des pectoraux sans rebondir.',
     'barbell-deadlift':'Avant de décoller la barre, verrouille ta sangle abdominale et garde-la proche des tibias. Pousse le sol avec les jambes puis termine en contractant les fessiers, sans hyperétendre le dos.',
     'barbell-full-squat':'Prends une grande inspiration et verrouille le gainage avant chaque répétition. Descends sous contrôle en gardant les genoux dans l’axe des pieds, puis remonte en poussant le sol.',
+    'barbell-front-squat':'Garde les coudes hauts et le buste vertical. Descends sous contrôle en maintenant le gainage puis pousse le sol sans laisser les genoux s’effondrer vers l’intérieur.',
     'bodyweight-squat':'Garde le pied bien ancré au sol et laisse les genoux suivre la direction des orteils. Descends aussi bas que tu peux sans perdre le contrôle du bassin ou des pieds.',
     'leg-press':'Garde le bassin et le haut du dos plaqués au dossier. Descends jusqu’à une amplitude que tu contrôles sans que le bassin ne s’enroule, puis pousse à travers toute la plante du pied.',
+    'single-leg-press':'Garde le bassin bien calé contre le dossier et le pied stable sur la plateforme. Contrôle la descente et veille à ce que le genou reste dans l’axe des orteils.',
     'leg-extension':'Garde le bassin stable contre le dossier et évite de donner un coup avec le poids. Marque une courte contraction en haut puis redescends lentement.',
     'leg-curl':'Garde les hanches stables et évite de décoller le bassin du support. Ramène les talons vers les fessiers sans à-coup et contrôle complètement le retour.',
     'barbell-hip-thrust':'Rentre légèrement le bassin en fin de mouvement et serre les fessiers en haut. Cherche l’extension de hanche, pas une hyperextension lombaire.',
@@ -22,10 +24,12 @@
     'barbell-bent-over-row':'Fixe ton gainage et garde le dos neutre pendant toute la série. Tire la barre vers le bas du ventre en conduisant le mouvement avec les coudes.',
     'barbell-row':'Fixe ton gainage et garde le dos neutre pendant toute la série. Tire la barre vers le bas du ventre en conduisant le mouvement avec les coudes.',
     'dumbbell-row':'Prends appui solidement et garde le bassin stable. Tire le coude vers la hanche plutôt que vers l’épaule afin de mieux charger le grand dorsal.',
+    'one-arm-kettlebell-row':'Garde le dos stable et le bassin parallèle au sol. Tire le coude vers la hanche sans faire pivoter le buste, puis laisse l’épaule s’étirer sous contrôle.',
     'face-pull':'Tire la corde vers le visage en gardant les coudes ouverts et les épaules basses. Termine avec les mains de part et d’autre du visage sans compenser avec le bas du dos.',
     'dumbbell-lateral-raise':'Garde une légère flexion des coudes et monte les bras dans le plan naturel des épaules. Évite l’élan : si tu dois balancer le buste, la charge est trop lourde.',
     'dumbbell-front-raise':'Garde les côtes et le bassin contrôlés et lève les haltères sans élan. Arrête la montée lorsque les bras arrivent environ à hauteur des épaules.',
     'arnold-press':'Fais tourner progressivement les poignets pendant la montée et garde le tronc gainé. Évite de cambrer pour terminer la répétition.',
+    'dumbbell-upright-row':'Laisse les coudes guider le mouvement et garde une amplitude confortable pour tes épaules. Évite une prise excessivement serrée et ne force pas la montée.',
     'dumbbell-biceps-curl':'Garde les coudes proches du corps et immobiles. Monte sans balancer les épaules puis contrôle la descente pour conserver la tension sur le biceps.',
     'hammer-curl':'Garde les paumes face à face et les coudes stables. Évite de lancer le mouvement avec les épaules et contrôle particulièrement la phase descendante.',
     'triceps-pushdown':'Garde les coudes près du corps et les épaules basses. Termine l’extension sans déplacer les coudes, puis remonte lentement sans perdre le contrôle.',
@@ -35,8 +39,11 @@
     'ab-wheel-rollout':'Verrouille le bassin avant de rouler vers l’avant. Arrête l’amplitude dès que le bas du dos commence à se creuser, puis ramène la roue en gardant les abdos contractés.',
     'plank':'Serre les fessiers et les abdos pour garder les côtes et le bassin alignés. Ne cherche pas à tenir plus longtemps si la position se dégrade.',
     'crunch':'Enroule progressivement le haut du dos en rapprochant les côtes du bassin. Évite de tirer sur la nuque et ne cherche pas à monter le buste le plus haut possible.',
+    'lying-leg-raise':'Garde le bas du dos au sol en contrôlant le mouvement. Monte les jambes sans élan et ralentis surtout la descente pour garder les abdos sous tension.',
+    'hanging-knee-raise':'Évite tout balancement et initie la montée avec les abdos. Ramène les genoux vers la poitrine puis redescends lentement sans perdre le contrôle du bassin.',
     'calf-raise':'Descends jusqu’à un véritable étirement du mollet puis monte le plus haut possible sans rebondir. Marque une courte pause en position haute.',
     'bulgarian-split-squat':'Trouve une position stable avant de charger. Descends verticalement en laissant le genou avant suivre les orteils, puis pousse dans tout le pied pour remonter.',
+    'split-squat':'Garde le pied avant bien ancré et descends verticalement plutôt que de partir vers l’avant. Contrôle la profondeur puis pousse dans tout le pied avant.',
     'walking-lunges':'Fais un pas suffisamment long pour rester stable et laisse le genou suivre l’axe du pied. Contrôle chaque descente avant de pousser dans le sol pour repartir.',
     'back-extension':'Initie le mouvement par les hanches et garde la colonne neutre. Remonte jusqu’à l’alignement du corps sans chercher à dépasser cette position.',
     'kettlebell-swing':'Projette les hanches vers l’avant plutôt que de lever la kettlebell avec les bras. Garde le dos neutre et laisse le mouvement venir de l’extension explosive des hanches.'
