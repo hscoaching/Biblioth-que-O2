@@ -1,30 +1,46 @@
-// Remplace le filtre unique « Bras » par deux filtres : Biceps et Triceps.
-// Le filtre natif « bras » reste utilisé en interne ; on affine ensuite les cartes affichées.
+// Filtres bras : Biceps / Triceps, avec ciblage fiable à partir des muscles du catalogue RepDB.
 (function () {
   const categories = document.querySelector('.categories');
   const grid = document.querySelector('#exercise-grid');
   if (!categories || !grid) return;
 
   let selectedArm = null;
-  let applying = false;
+  let muscleById = new Map();
+  let ready = false;
+
+  async function loadMuscles() {
+    try {
+      const res = await fetch('https://exercise-dataset.com/exercises.json');
+      const data = await res.json();
+      (Array.isArray(data) ? data : data.exercises || []).forEach(e => {
+        const id = String(e.id ?? '');
+        const muscles = (e.muscles || []).map(m => String(m).toLowerCase());
+        if (id) muscleById.set(id, muscles);
+      });
+    } catch (_) {}
+    ready = true;
+    applyArmFilter();
+  }
 
   function applyArmFilter() {
-    if (applying) return;
-    applying = true;
     requestAnimationFrame(() => {
-      const cards = grid.querySelectorAll('.card');
+      const cards = [...grid.querySelectorAll('.card')];
+      if (!selectedArm) return cards.forEach(c => c.style.display = '');
+
       cards.forEach(card => {
-        if (!selectedArm) {
-          card.style.display = '';
-          return;
-        }
-        const text = card.textContent.toLowerCase();
-        card.style.display = text.includes(selectedArm) ? '' : 'none';
+        const id = String(card.dataset.id || '');
+        const muscles = muscleById.get(id) || [];
+        const visible = ready && muscles.some(m =>
+          m === selectedArm || m.includes(selectedArm)
+        );
+        card.style.display = visible ? '' : 'none';
       });
-      const visible = [...cards].filter(c => c.style.display !== 'none').length;
+
+      const visible = cards.filter(c => c.style.display !== 'none').length;
       const count = document.querySelector('#count');
-      if (count && selectedArm) count.textContent = `${visible} exercice${visible > 1 ? 's' : ''}`;
-      applying = false;
+      if (count) count.textContent = `${visible} exercice${visible > 1 ? 's' : ''}`;
+      const empty = document.querySelector('#empty');
+      if (empty) empty.hidden = visible !== 0;
     });
   }
 
@@ -44,13 +60,11 @@
         event.preventDefault();
         event.stopPropagation();
         selectedArm = selectedArm === muscle ? null : muscle;
+        categories.querySelectorAll('.hs-arm-filter').forEach(x =>
+          x.classList.toggle('active', x.dataset.arm === selectedArm)
+        );
         old.click();
-        requestAnimationFrame(() => {
-          categories.querySelectorAll('.hs-arm-filter').forEach(x =>
-            x.classList.toggle('active', x.dataset.arm === selectedArm)
-          );
-          applyArmFilter();
-        });
+        applyArmFilter();
       };
       return b;
     };
@@ -60,7 +74,7 @@
 
   const observer = new MutationObserver(() => {
     installArmButtons();
-    applyArmFilter();
+    if (selectedArm) applyArmFilter();
   });
 
   observer.observe(categories, { childList: true, subtree: true });
@@ -70,7 +84,9 @@
     const button = event.target.closest('button');
     if (!button || button.classList.contains('hs-arm-filter')) return;
     selectedArm = null;
+    categories.querySelectorAll('.hs-arm-filter').forEach(x => x.classList.remove('active'));
   }, true);
 
   installArmButtons();
+  loadMuscles();
 })();
