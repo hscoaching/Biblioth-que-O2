@@ -1,22 +1,119 @@
-const exercises=[
-{id:'squat',name:'Squat',cat:'jambes',muscles:['Quadriceps','Fessiers','Ischio-jambiers'],desc:'Mouvement fondamental pour les membres inférieurs.',tips:['Pieds stables et genoux dans l’axe des orteils.','Garde le tronc gainé.','Descends sous contrôle puis pousse fort.'],errors:['Genoux qui rentrent.','Perte de gainage.','Charge trop lourde.'],media:'https://static.exercisedb.dev/media/2gPfomN.gif'},
-{id:'presse-cuisses',name:'Presse à cuisses',cat:'jambes',muscles:['Quadriceps','Fessiers'],desc:'Travail guidé des membres inférieurs.',tips:['Bassin plaqué.','Ne verrouille pas brutalement les genoux.','Contrôle la descente.'],errors:['Bassin qui décolle.','Descente sans contrôle.','Verrouillage violent.'],media:'https://static.exercisedb.dev/media/leg-press.gif'},
-{id:'souleve-de-terre-roumain',name:'Soulevé de terre roumain',cat:'jambes',muscles:['Ischio-jambiers','Fessiers'],desc:'Excellent exercice de chaîne postérieure.',tips:['Dos neutre.','Recule les hanches.','Charge proche des jambes.'],errors:['Dos arrondi.','Mouvement transformé en squat.','Charge éloignée.'],media:'https://static.exercisedb.dev/media/romanian-deadlift.gif'},
-{id:'tirage-vertical',name:'Tirage vertical',cat:'dos',muscles:['Grand dorsal','Biceps'],desc:'Développe la force de tirage verticale.',tips:['Poitrine ouverte.','Tire les coudes vers les côtes.','Évite l’élan.'],errors:['Tirer seulement avec les mains.','Élan du buste.','Retour brutal.'],media:'https://static.exercisedb.dev/media/lat-pulldown.gif'},
-{id:'rowing',name:'Rowing',cat:'dos',muscles:['Grand dorsal','Rhomboïdes','Trapèzes'],desc:'Mouvement de tirage horizontal.',tips:['Tronc stable.','Coudes vers l’arrière.','Contrôle le retour.'],errors:['Dos arrondi.','Élan du corps.','Tronc instable.'],media:'https://static.exercisedb.dev/media/barbell-row.gif'},
-{id:'developpe-couche',name:'Développé couché',cat:'pectoraux',muscles:['Pectoraux','Triceps','Deltoïdes antérieurs'],desc:'Grand classique pour les pectoraux.',tips:['Omoplates fixées.','Pieds ancrés.','Descente contrôlée.'],errors:['Épaules décollées.','Rebond.','Trajectoire incontrôlée.'],media:'https://static.exercisedb.dev/media/EIeI8Vf.gif'},
-{id:'developpe-incline',name:'Développé incliné',cat:'pectoraux',muscles:['Pectoraux supérieurs','Triceps'],desc:'Accent sur la portion claviculaire des pectoraux.',tips:['Épaules basses.','Trajectoire naturelle.','Amplitude confortable.'],errors:['Épaules aux oreilles.','Descente incontrôlée.','Amplitude forcée.'],media:'https://static.exercisedb.dev/media/incline-bench-press.gif'},
-{id:'elevations-laterales',name:'Élévations latérales',cat:'epaules',muscles:['Deltoïde moyen'],desc:'Isolation du faisceau moyen de l’épaule.',tips:['Légère flexion des coudes.','Monte sans élan.','Contrôle la descente.'],errors:['Trop lourd.','Buste qui balance.','Mouvement transformé en tirage.'],media:'https://static.exercisedb.dev/media/lateral-raise.gif'},
-{id:'curl-halteres',name:'Curl haltères',cat:'bras',muscles:['Biceps','Brachial'],desc:'Exercice simple et efficace pour les biceps.',tips:['Coudes proches du corps.','Pas d’élan.','Contrôle en haut et en bas.'],errors:['Balancer le corps.','Coudes trop avancés.','Charge excessive.'],media:'https://static.exercisedb.dev/media/bicep-curl.gif'},
-{id:'extension-triceps-poulie',name:'Extension triceps poulie',cat:'bras',muscles:['Triceps'],desc:'Isolation des triceps à la poulie.',tips:['Coudes fixes.','Extension contrôlée.','Retour lent.'],errors:['Coudes qui s’écartent.','Élan.','Retour brutal.'],media:'https://static.exercisedb.dev/media/tricep-pushdown.gif'},
-{id:'crunch-poulie',name:'Crunch à la poulie',cat:'abdos',muscles:['Grand droit de l’abdomen'],desc:'Travail chargé du gainage dynamique.',tips:['Enroule la colonne.','Expire pendant la flexion.','Contrôle le retour.'],errors:['Tirer avec les bras.','Élan.','Remontée incontrôlée.'],media:'https://static.exercisedb.dev/media/cable-crunch.gif'},
-{id:'gainage-planche',name:'Gainage planche',cat:'abdos',muscles:['Abdominaux','Fessiers','Épaules'],desc:'Renforcement global du tronc.',tips:['Corps aligné.','Contracte abdos et fessiers.','Respire normalement.'],errors:['Bas du dos creusé.','Fesses trop hautes.','Respiration bloquée.'],media:'https://static.exercisedb.dev/media/plank.gif'}
-];
-let category='all';const grid=document.querySelector('#exercise-grid'),search=document.querySelector('#search'),count=document.querySelector('#count'),empty=document.querySelector('#empty'),modal=document.querySelector('#exercise-modal'),modalContent=document.querySelector('#modal-content');const categoryNames={jambes:'Jambes',dos:'Dos',pectoraux:'Pectoraux',epaules:'Épaules',bras:'Bras',abdos:'Abdos'};
-function mediaHtml(e){return e.media?`<div class="media-frame"><img src="${e.media}" alt="Animation ${e.name}" loading="lazy"></div>`:''}
-function render(){const q=search.value.trim().toLowerCase();const list=exercises.filter(e=>(category==='all'||e.cat===category)&&(!q||`${e.name} ${e.muscles.join(' ')} ${e.desc}`.toLowerCase().includes(q)));grid.innerHTML=list.map(e=>`<article class="card card-media" data-id="${e.id}">${mediaHtml(e)}<span class="tag">${categoryNames[e.cat]}</span><h3>${e.name}</h3><p>${e.muscles.join(' · ')}</p></article>`).join('');count.textContent=`${list.length} exercice${list.length>1?'s':''}`;empty.hidden=list.length>0;document.querySelectorAll('.card').forEach(c=>c.onclick=()=>openExercise(c.dataset.id))}
-function exerciseUrl(e){const url=new URL(window.location.href);url.search='';url.hash='';url.searchParams.set('exercice',e.id);return url.toString()}
-function openExercise(id,updateUrl=true){const e=exercises.find(x=>x.id===id);if(!e)return;if(updateUrl)history.pushState({exercice:e.id},'',exerciseUrl(e));modalContent.innerHTML=`<div class="modal"><span class="modal-tag">${categoryNames[e.cat]}</span><h2>${e.name}</h2>${mediaHtml(e)}<div class="modal-muscles">${e.muscles.map(m=>`<span class="modal-muscle">${m}</span>`).join('')}</div><p>${e.desc}</p><h3>Points techniques</h3><ul>${e.tips.map(t=>`<li>${t}</li>`).join('')}</ul><div class="modal-errors"><h3>Erreurs à éviter</h3><ul>${e.errors.map(t=>`<li>${t}</li>`).join('')}</ul></div><div class="qr-section"><h3>QR code de cet exercice</h3><p>Scanne ce QR code pour ouvrir directement cette fiche.</p><div id="qrcode" class="qr-code"></div><div class="qr-url"><input id="exercise-link" value="${exerciseUrl(e)}" readonly><button class="qr-copy" id="copy-link">Copier le lien</button></div></div></div>`;modal.showModal();generateQR(e)}
-function generateQR(e){const box=document.querySelector('#qrcode');if(!box||typeof QRCode==='undefined')return;box.innerHTML='';new QRCode(box,{text:exerciseUrl(e),width:220,height:220,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});const button=document.querySelector('#copy-link');button.onclick=async()=>{try{await navigator.clipboard.writeText(exerciseUrl(e));button.textContent='Lien copié ✓';setTimeout(()=>button.textContent='Copier le lien',1800)}catch{button.textContent='Copie impossible'}}}
+let exercises=[];
+let category='all';
+const DATA_URL='https://exercise-dataset.com/exercises.json';
+const MEDIA_BASE='https://exercise-dataset.com/';
+
+const grid=document.querySelector('#exercise-grid');
+const search=document.querySelector('#search');
+const count=document.querySelector('#count');
+const empty=document.querySelector('#empty');
+const modal=document.querySelector('#exercise-modal');
+const modalContent=document.querySelector('#modal-content');
+const categoriesEl=document.querySelector('.categories');
+
+const categoryNames={
+  all:'Tous',jambes:'Jambes',dos:'Dos',pectoraux:'Pectoraux',epaules:'Épaules',bras:'Bras',abdos:'Abdos',full:'Full body',cardio:'Cardio',mobilite:'Mobilité'
+};
+
+const bodyMap={
+  upper_legs:'jambes',lower_legs:'jambes',back:'dos',chest:'pectoraux',shoulders:'epaules',upper_arms:'bras',lower_arms:'bras',core:'abdos',full_body:'full',cardio:'cardio',neck:'mobilite'
+};
+
+const muscleNames={
+  quadriceps:'Quadriceps',hamstrings:'Ischio-jambiers',gluteus_maximus:'Grand fessier',glutes:'Fessiers',calves:'Mollets',adductors:'Adducteurs',abductors:'Abducteurs',
+  latissimus_dorsi:'Grand dorsal',trapezius:'Trapèzes',rhomboids:'Rhomboïdes',erector_spinae:'Érecteurs du rachis',lower_back:'Lombaires',
+  pectoralis_major:'Grand pectoral',pectoralis_minor:'Petit pectoral',deltoids:'Deltoïdes',anterior_deltoid:'Deltoïde antérieur',lateral_deltoid:'Deltoïde moyen',rear_deltoid:'Deltoïde postérieur',
+  biceps:'Biceps',brachialis:'Brachial',triceps:'Triceps',forearms:'Avant-bras',rectus_abdominis:'Grand droit',obliques:'Obliques',transverse_abdominis:'Transverse',core:'Ceinture abdominale',
+  hip_flexors:'Fléchisseurs de hanche',serratus_anterior:'Dentelé antérieur',rotator_cuff:'Coiffe des rotateurs',tibialis_anterior:'Tibial antérieur',neck:'Cou'
+};
+
+function labelMuscle(m){return muscleNames[m]||String(m).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
+function categoryFor(e){return bodyMap[e.body_part]||'mobilite'}
+function categoryLabel(e){return categoryNames[categoryFor(e)]||'Autre'}
+function imageUrl(path){return path?new URL(path,MEDIA_BASE).href:''}
+function slugify(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+
+function mediaHtml(e,modalView=false){
+  const imgs=e.images||{};
+  const flat=imgs.flat||{};
+  const a=imageUrl(flat.start||flat.main);
+  const b=imageUrl(flat.peak);
+  if(!a)return '';
+  if(b){
+    return `<div class="media-frame media-pair ${modalView?'modal-media':''}"><img class="media-a" src="${a}" alt="Position de départ — ${e.name}" loading="lazy"><img class="media-b" src="${b}" alt="Position finale — ${e.name}" loading="lazy"></div>`;
+  }
+  return `<div class="media-frame ${modalView?'modal-media':''}"><img src="${a}" alt="Illustration — ${e.name}" loading="lazy"></div>`;
+}
+
+function renderCategories(){
+  const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos','full','cardio','mobilite'];
+  categoriesEl.innerHTML=wanted.map(c=>`<button class="chip ${category===c?'active':''}" data-category="${c}">${categoryNames[c]}</button>`).join('');
+  categoriesEl.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{category=b.dataset.category;renderCategories();render()});
+}
+
+function render(){
+  const q=search.value.trim().toLowerCase();
+  const list=exercises.filter(e=>{
+    const hay=[e.name,e.description,...(e.muscles||[]),e.equipmentLabel,e.bodyPartLabel,...(e.tags||[])].join(' ').toLowerCase();
+    return (category==='all'||categoryFor(e)===category)&&(!q||hay.includes(q));
+  });
+  grid.innerHTML=list.map(e=>`<article class="card card-media" data-id="${e.id}">${mediaHtml(e)}<span class="tag">${categoryLabel(e)}</span><h3>${e.name}</h3><p>${(e.muscles||[]).slice(0,3).map(labelMuscle).join(' · ')}</p></article>`).join('');
+  count.textContent=`${list.length} exercice${list.length>1?'s':''}`;
+  empty.hidden=list.length>0;
+  grid.querySelectorAll('.card').forEach(c=>c.onclick=()=>openExercise(c.dataset.id));
+}
+
+function exerciseUrl(e){
+  const url=new URL(window.location.href);url.search='';url.hash='';url.searchParams.set('exercice',e.id);return url.toString();
+}
+
+function openExercise(id,updateUrl=true){
+  const e=exercises.find(x=>x.id===id);if(!e)return;
+  if(updateUrl)history.pushState({exercice:e.id},'',exerciseUrl(e));
+  const instructions=e.instructions||[];
+  const tips=e.tips||[];
+  modalContent.innerHTML=`<div class="modal"><span class="modal-tag">${categoryLabel(e)}${e.equipmentLabel?' · '+e.equipmentLabel:''}</span><h2>${e.name}</h2>${mediaHtml(e,true)}<div class="modal-muscles">${(e.muscles||[]).map(m=>`<span class="modal-muscle">${labelMuscle(m)}</span>`).join('')}</div><p>${e.description||'Exercice de renforcement musculaire.'}</p>${instructions.length?`<h3>Exécution</h3><ol>${instructions.map(t=>`<li>${t}</li>`).join('')}</ol>`:''}${tips.length?`<h3>Conseils techniques</h3><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}<div class="modal-errors"><h3>À retenir</h3><ul><li>Contrôle l'amplitude et la vitesse du mouvement.</li><li>Garde une technique propre avant d'augmenter la charge.</li><li>Adapte l'exercice à ton niveau et à ton matériel.</li></ul></div><div class="qr-section"><h3>QR code de cet exercice</h3><p>Scanne ce QR code pour ouvrir directement cette fiche.</p><div id="qrcode" class="qr-code"></div><div class="qr-url"><input id="exercise-link" value="${exerciseUrl(e)}" readonly><button class="qr-copy" id="copy-link">Copier le lien</button></div></div></div>`;
+  modal.showModal();generateQR(e);
+}
+
+function generateQR(e){
+  const box=document.querySelector('#qrcode');if(!box||typeof QRCode==='undefined')return;
+  box.innerHTML='';new QRCode(box,{text:exerciseUrl(e),width:220,height:220,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  const button=document.querySelector('#copy-link');button.onclick=async()=>{try{await navigator.clipboard.writeText(exerciseUrl(e));button.textContent='Lien copié ✓';setTimeout(()=>button.textContent='Copier le lien',1800)}catch{button.textContent='Copie impossible'}};
+}
+
 function openFromUrl(){const id=new URLSearchParams(window.location.search).get('exercice');if(id)openExercise(id,false)}
-document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelector('.chip.active').classList.remove('active');b.classList.add('active');category=b.dataset.category;render()});search.oninput=render;document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});render();openFromUrl();
+
+async function loadLibrary(){
+  grid.innerHTML='<p class="empty">Chargement de la bibliothèque…</p>';
+  try{
+    const res=await fetch(DATA_URL,{cache:'no-store'});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    exercises=(data.exercises||[]).map(e=>{
+      const cat=categoryFor(e);
+      return {
+        ...e,
+        id:e.id||slugify(e.name_en),
+        name:e.name_fr||e.name_en,
+        description:e.description_fr||e.description_en||'',
+        instructions:e.instructions_fr||e.instructions_en||[],
+        tips:e.tips_fr||e.tips_en||[],
+        muscles:[...(e.primary_muscles||[]),...(e.secondary_muscles||[])],
+        equipmentLabel:String(e.equipment||'Poids du corps').replace(/_/g,' '),
+        bodyPartLabel:cat
+      };
+    });
+    renderCategories();render();openFromUrl();
+  }catch(err){
+    console.error(err);
+    grid.innerHTML='<p class="empty">Impossible de charger la bibliothèque. Recharge la page.</p>';
+    count.textContent='';
+  }
+}
+
+search.oninput=render;
+document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};
+modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});
+window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});
+loadLibrary();
