@@ -1,4 +1,4 @@
-// Conserve exactement la position de la page pendant l'ouverture et la fermeture d'une fiche.
+// Empêche iOS/Safari de déplacer la page lors de l'ouverture d'une fiche.
 (function(){
   const modal=document.querySelector('#exercise-modal');
   const grid=document.querySelector('#exercise-grid');
@@ -6,58 +6,69 @@
 
   let savedY=0;
   let savedX=0;
-  let raf=0;
+  let locked=false;
 
   function savePosition(){
     savedX=window.scrollX||window.pageXOffset||0;
     savedY=window.scrollY||window.pageYOffset||0;
   }
 
-  function restorePosition(){
-    const x=savedX, y=savedY;
-    cancelAnimationFrame(raf);
-    const restore=()=>{
-      // 'auto' est mieux supporté par Safari/iOS que 'instant'.
-      const html=document.documentElement;
-      const previous=html.style.scrollBehavior;
-      html.style.scrollBehavior='auto';
-      window.scrollTo(x,y);
-      html.style.scrollBehavior=previous;
-    };
-    raf=requestAnimationFrame(()=>{
-      restore();
-      setTimeout(restore,30);
-      setTimeout(restore,120);
-      setTimeout(restore,300);
-    });
+  function lockPage(){
+    if(locked)return;
+    locked=true;
+    const body=document.body;
+    body.dataset.hsScrollY=String(savedY);
+    body.dataset.hsScrollX=String(savedX);
+    body.style.position='fixed';
+    body.style.top=(-savedY)+'px';
+    body.style.left=(-savedX)+'px';
+    body.style.right='0';
+    body.style.width='100%';
+    body.style.overflow='hidden';
   }
 
-  // Capture le clic avant app.js afin d'enregistrer la position AVANT showModal().
+  function unlockPage(){
+    if(!locked)return;
+    const y=Number(bodyValue('hsScrollY',savedY));
+    const x=Number(bodyValue('hsScrollX',savedX));
+    const body=document.body;
+    body.style.position='';
+    body.style.top='';
+    body.style.left='';
+    body.style.right='';
+    body.style.width='';
+    body.style.overflow='';
+    delete body.dataset.hsScrollY;
+    delete body.dataset.hsScrollX;
+    locked=false;
+    requestAnimationFrame(()=>window.scrollTo(x,y));
+    setTimeout(()=>window.scrollTo(x,y),50);
+    setTimeout(()=>window.scrollTo(x,y),180);
+  }
+
+  function bodyValue(key,fallback){
+    return document.body.dataset[key]!==undefined?document.body.dataset[key]:fallback;
+  }
+
   grid.addEventListener('click',function(event){
     const card=event.target.closest('.card');
     if(!card)return;
     savePosition();
-    // iOS peut repositionner la page lors de l'ouverture du <dialog>.
-    setTimeout(restorePosition,0);
-    setTimeout(restorePosition,60);
-    setTimeout(restorePosition,180);
+    lockPage();
   },true);
 
-  modal.addEventListener('close',function(){
-    restorePosition();
-    setTimeout(restorePosition,80);
-    setTimeout(restorePosition,220);
-  });
+  modal.addEventListener('close',unlockPage);
+  modal.addEventListener('cancel',function(){setTimeout(unlockPage,0)});
 
-  modal.addEventListener('cancel',function(){
-    setTimeout(restorePosition,0);
-  });
+  // Si une fiche est ouverte via un lien direct/URL.
+  const originalPushState=history.pushState.bind(history);
+  history.pushState=function(){
+    const result=originalPushState(...arguments);
+    if(modal.open&&!locked){savePosition();lockPage()}
+    return result;
+  };
 
-  // Sécurité supplémentaire pour les ouvertures déclenchées par l'URL.
   window.addEventListener('popstate',function(){
-    if(!modal.open){
-      setTimeout(restorePosition,0);
-      setTimeout(restorePosition,120);
-    }
+    if(!modal.open)unlockPage();
   });
 })();
