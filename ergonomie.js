@@ -13,4 +13,11 @@
     };
     const start=window.load;if(typeof start==='function')window.__hsAdminReload=start;
   }
+  // Programme : toute la carte ouvre le programme, sauf l'étoile des favoris.
+  document.addEventListener('click',function(e){
+    const card=e.target.closest('.programme-card');
+    if(!card || e.target.closest('[data-fav-program]') || e.target.closest('.programme-open')) return;
+    const button=card.querySelector('[data-program-index]');
+    if(button) button.click();
+  });
 })();
