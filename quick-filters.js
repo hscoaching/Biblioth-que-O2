@@ -1,15 +1,21 @@
 (function(){
-  const FILTER='animated';
   let active=false;
+  let scheduled=false;
 
   function isAnimated(card){
     return !!card.querySelector('.media-pair .media-a, .media-pair .media-b');
   }
 
   function apply(){
-    document.querySelectorAll('#exercise-grid .card').forEach(card=>{
-      card.classList.toggle('hs-quick-hidden',active&&!isAnimated(card));
+    const cards=[...document.querySelectorAll('#exercise-grid .card')];
+    let animatedCount=0;
+    cards.forEach(card=>{
+      const animated=isAnimated(card);
+      if(animated)animatedCount++;
+      card.classList.toggle('hs-quick-hidden',active&&!animated);
     });
+    const c=document.querySelector('.hs-animated-chip');
+    if(c)c.textContent=`▶ Animés${animatedCount?` · ${animatedCount}`:''}`;
   }
 
   function chip(){
@@ -27,18 +33,23 @@
       });
       box.appendChild(c);
     }
-    c.textContent='▶ Animés';
     c.classList.toggle('active',active);
   }
 
   function sync(){
-    requestAnimationFrame(()=>{chip();apply();});
+    if(scheduled)return;
+    scheduled=true;
+    requestAnimationFrame(()=>{
+      scheduled=false;
+      chip();
+      apply();
+    });
   }
 
   function init(){
     const grid=document.querySelector('#exercise-grid');
     if(!grid)return;
-    new MutationObserver(sync).observe(document.body,{childList:true,subtree:true});
+    new MutationObserver(sync).observe(grid,{childList:true,subtree:true});
     sync();
   }
 
