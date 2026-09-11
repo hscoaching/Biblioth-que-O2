@@ -27,6 +27,10 @@
     body.style.overflow='hidden';
   }
 
+  function bodyValue(key,fallback){
+    return document.body.dataset[key]!==undefined?document.body.dataset[key]:fallback;
+  }
+
   function unlockPage(){
     if(!locked)return;
     const y=Number(bodyValue('hsScrollY',savedY));
@@ -46,11 +50,9 @@
     setTimeout(()=>window.scrollTo(x,y),180);
   }
 
-  function bodyValue(key,fallback){
-    return document.body.dataset[key]!==undefined?document.body.dataset[key]:fallback;
-  }
-
   grid.addEventListener('click',function(event){
+    // Un clic sur Favoris ne doit jamais verrouiller la page.
+    if(event.target.closest('.hs-fav'))return;
     const card=event.target.closest('.card');
     if(!card)return;
     savePosition();
