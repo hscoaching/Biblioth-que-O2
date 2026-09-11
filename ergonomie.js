@@ -1,88 +1,112 @@
-/* HS Coaching — Ergonomie O2
-   Améliorations UX sans modifier la source de données.
+/* HS Coaching — Responsive O2
+   Passe responsive : téléphone + tablette + ordinateur.
+   Aucun changement de données ou de logique métier.
 */
 (function(){
   const style=document.createElement('style');
   style.textContent=`
-    :root{scroll-behavior:smooth}
-    .topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-    .nav,.topnav{overflow-x:auto;scrollbar-width:none;white-space:nowrap}
-    .nav::-webkit-scrollbar,.topnav::-webkit-scrollbar{display:none}
-    .categories{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:5px;scroll-snap-type:x proximity}
-    .categories::-webkit-scrollbar{display:none}
-    .categories .chip{flex:0 0 auto;scroll-snap-align:start}
-    .search{position:sticky;top:72px;z-index:20;box-shadow:0 8px 25px rgba(0,0,0,.22)}
-    .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    #count{color:#777;font-size:12px;font-weight:700}
-    .hs-back-top{position:fixed;right:16px;bottom:18px;z-index:80;width:42px;height:42px;border:1px solid #303030;border-radius:50%;background:#161616;color:#fff;display:none;align-items:center;justify-content:center;font-size:18px;box-shadow:0 8px 25px rgba(0,0,0,.3);cursor:pointer}
-    .hs-back-top.show{display:flex}
-    .admin .panel{scroll-margin-top:90px}
-    .admin #exercisePanel{position:relative}
-    .admin #exerciseSearch{font-size:15px;min-height:46px}
-    .admin .filter{position:sticky;top:74px;z-index:15;background:#141414;padding:8px 0;margin:8px 0 14px}
-    .admin .filter button{min-height:40px}
-    .admin .item{transition:transform .16s ease,border-color .16s ease,background .16s ease}
-    .admin .item:hover{border-color:#3a3a3a;background:#121212}
-    .admin .item-actions .btn{min-height:40px}
-    .admin .editor{scroll-margin-top:90px}
-    .admin .editor h2{margin-top:0}
-    .admin .field input,.admin .field textarea,.admin .field select{min-height:44px}
+    /* Base : empêcher les débordements accidentels */
+    html,body{max-width:100%;overflow-x:hidden}
+    img,video,canvas{max-width:100%}
+    button,input,textarea,select{max-width:100%}
+    .container{width:100%;max-width:1100px}
+    .topbar{min-width:0}
+    .brand,.nav,.topnav{min-width:0}
+    .nav,.topnav{flex-wrap:wrap}
+    .section-head{min-width:0}
+
+    /* Fiches / médias : garder les proportions et éviter les cadres écrasés */
+    .card-media .media-frame,.modal-media .media-frame{max-width:100%;}
+    .card-media .media-frame img,.modal-media .media-frame img,
+    .card-media .media-frame video,.modal-media .media-frame video{max-width:100%;max-height:100%;}
+
+    /* Admin : les longues lignes doivent pouvoir se réduire proprement */
+    .admin .panel,.admin .editor,.admin .item,.admin .item-row,.admin .item-main{min-width:0;max-width:100%}
+    .admin .item-main strong{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:ellipsis}
+    .admin .item-actions .btn{min-width:0;white-space:normal;line-height:1.2}
+    .admin .actions,.admin .tabs,.admin .filter{min-width:0}
+
+    /* Ordinateur : contenu confortable sans s'étirer inutilement */
+    @media(min-width:1101px){
+      .container{padding-left:22px;padding-right:22px}
+    }
+
+    /* Tablettes */
+    @media(max-width:900px){
+      .container{padding-left:18px;padding-right:18px}
+      .hero{max-width:100%}
+      .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .admin .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+
+    /* Téléphones */
     @media(max-width:650px){
-      .topbar{top:0}
-      .nav{margin-right:8px!important}
-      .search{top:61px}
-      .hero{padding-top:18px}
-      .categories{margin-left:-4px;margin-right:-4px;padding-left:4px;padding-right:4px}
-      .admin .filter{top:60px;overflow-x:auto;flex-wrap:nowrap;padding:8px 0}
-      .admin .filter button{flex:0 0 auto}
-      .admin .item-actions{grid-template-columns:1fr 1fr}
-      .admin .item-actions .btn:first-child{grid-column:1/-1}
-      .admin .stats{grid-template-columns:repeat(3,1fr)}
-      .admin .stat{padding:11px 8px}
-      .admin .stat strong{font-size:21px}
+      .topbar{height:auto;min-height:64px;padding:8px 0}
+      .brand{padding-left:12px;gap:8px;flex:1;min-width:0}
+      .brand>div{min-width:0}
+      .brand strong,.brand small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .nav{margin:0 8px 0 6px!important;gap:3px!important;flex:0 0 auto}
+      .nav a{padding:8px 8px!important;font-size:10px!important}
+      .container{padding-left:12px;padding-right:12px}
+      .hero{padding:32px 0 24px}
+      .hero h1{font-size:clamp(38px,12vw,48px);letter-spacing:-2px}
+      .hero p:not(.eyebrow){font-size:13px}
+      .search{width:100%;max-width:100%;position:static;box-shadow:none}
+      .search input{min-width:0;width:100%}
+      .categories{width:100%;max-width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}
+      .section-head{gap:8px}
+      .section-head h2{min-width:0}
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+      .card{min-width:0}
+      .card-media .media-frame{height:auto;aspect-ratio:1 / 1;min-height:120px}
+      .card h3{overflow-wrap:anywhere}
+      .hs-card-equipment{white-space:normal;overflow-wrap:anywhere}
+      dialog{width:calc(100% - 12px);max-width:680px;padding:20px 14px}
+      .modal h2{font-size:26px;line-height:1.08;overflow-wrap:anywhere}
+      .modal-media{padding:7px}
+      .modal-media .media-frame{height:auto;aspect-ratio:1 / 1;min-height:210px}
+      .modal-media.media-pair .media-a,.modal-media.media-pair .media-b{height:100%!important}
+
+      /* Admin : une colonne réellement exploitable sur petit écran */
+      .admin{padding:18px 0 60px}
+      .admin .panel{padding:14px;border-radius:14px;margin:12px 0}
+      .admin .stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+      .admin .stat{padding:10px 7px;min-width:0}
+      .admin .stat strong{font-size:20px;overflow:hidden;text-overflow:ellipsis}
+      .admin .stat span{font-size:10px;line-height:1.2}
+      .admin .tabs,.admin .filter,.admin .actions{gap:6px}
+      .admin .tab,.admin .filter button,.admin .btn{padding:10px 11px;font-size:12px}
+      .admin .item{gap:9px;padding:10px}
+      .admin .item-row{gap:9px}
+      .admin .item-visual{width:58px;height:52px;flex-basis:58px}
+      .admin .item-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+      .admin .item-actions .btn{width:100%;min-height:42px;padding:9px 6px}
+      .admin .grid2{grid-template-columns:minmax(0,1fr)}
+      .admin .field{min-width:0}
+      .admin .field input,.admin .field textarea,.admin .field select{min-height:44px;font-size:16px}
+      .admin .editor{padding:13px}
+      .admin .preview img,.admin .preview video{height:auto;aspect-ratio:16 / 9;object-fit:contain}
+      .admin .topnav{margin-left:6px;gap:3px;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap}
+      .admin .topnav a{padding:7px 7px;font-size:10px;flex:0 0 auto}
+    }
+
+    /* Très petits téléphones (iPhone SE / 375 px) */
+    @media(max-width:390px){
+      .brand-mark{width:32px;height:32px}
+      .brand strong{font-size:11px}
+      .brand small{font-size:9px}
+      .nav a{padding:7px 6px!important;font-size:9px!important}
+      .container{padding-left:10px;padding-right:10px}
+      .grid{gap:7px}
+      .card-media .tag,.card-media h3,.card-media p,.card-media .hs-card-equipment{margin-left:10px;margin-right:10px}
+      .card h3{font-size:14px}
+      .hs-card-equipment{max-width:calc(100% - 20px)}
+      .admin .stats{gap:5px}
+      .admin .stat{padding:9px 5px}
+      .admin .stat strong{font-size:18px}
+      .admin .tab,.admin .filter button,.admin .btn{font-size:11px;padding:9px 8px}
+      .admin .item-actions{grid-template-columns:1fr}
     }
   `;
   document.head.appendChild(style);
-
-  function addBackTop(){
-    const b=document.createElement('button');
-    b.className='hs-back-top';b.type='button';b.setAttribute('aria-label','Retour en haut');b.textContent='↑';
-    b.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
-    document.body.appendChild(b);
-    const update=()=>b.classList.toggle('show',window.scrollY>500);
-    window.addEventListener('scroll',update,{passive:true});update();
-  }
-
-  function publicUX(){
-    const search=document.getElementById('search');
-    if(search){
-      search.addEventListener('keydown',e=>{if(e.key==='Escape'){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));search.blur()}});
-    }
-    const count=document.getElementById('count');
-    if(count){
-      const obs=new MutationObserver(()=>{
-        const cards=document.querySelectorAll('#exercise-grid .card');
-        const empty=document.getElementById('empty');
-        if(empty&&!empty.hidden) count.textContent='0 exercice';
-        else count.textContent=cards.length+(cards.length>1?' exercices':' exercice');
-      });
-      obs.observe(document.getElementById('exercise-grid'),{childList:true,subtree:true});
-    }
-    addBackTop();
-  }
-
-  function adminUX(){
-    const search=document.getElementById('exerciseSearch');
-    if(search){
-      search.title='Raccourci : / pour rechercher, Échap pour effacer';
-      search.addEventListener('keydown',e=>{if(e.key==='Escape'){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));search.focus()}});
-      document.addEventListener('keydown',e=>{
-        if(e.key==='/'&&document.activeElement!==search&&document.activeElement?.tagName!=='INPUT'&&document.activeElement?.tagName!=='TEXTAREA'){e.preventDefault();search.focus()}
-      });
-    }
-    addBackTop();
-  }
-
-  if(document.querySelector('.admin')) adminUX();
-  else publicUX();
 })();
