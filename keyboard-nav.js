@@ -22,7 +22,7 @@
       }
     });
     const observer=new MutationObserver(()=>decorate(grid));
-    observer.observe(grid,{childList:true,subtree:true});
+    observer.observe(grid,{childList:true});
     decorate(grid);
   }
 
