@@ -8,6 +8,18 @@
   const bodyParts={chest:'chest',pectoralis_major:'chest',pectoralis_minor:'chest',back:'back',latissimus_dorsi:'back',trapezius:'back',rhomboids:'back',shoulders:'shoulders',deltoids:'shoulders',anterior_deltoid:'shoulders',lateral_deltoid:'shoulders',rear_deltoid:'shoulders',biceps:'upper_arms',brachialis:'upper_arms',triceps:'upper_arms',forearms:'lower_arms',quadriceps:'upper_legs',hamstrings:'upper_legs',gluteus_maximus:'upper_legs',glutes:'upper_legs',adductors:'upper_legs',abductors:'upper_legs',calves:'lower_legs',tibialis_anterior:'lower_legs',rectus_abdominis:'core',obliques:'core',transverse_abdominis:'core',core:'core',hip_flexors:'core',neck:'neck'};
   function part(muscles){for(const m of (muscles||[]))if(bodyParts[m])return bodyParts[m];return 'core'}
   function toRepDb(rows){return {exercises:(rows||[]).map(e=>({id:e.slug||String(e.id),name_en:e.name||e.slug||String(e.id),description_en:e.description||'',primary_muscles:e.muscles||[],secondary_muscles:[],equipment:e.equipment||'',difficulty:e.level||'',instructions_en:e.instructions||[],tips_en:e.tips||[],body_part:part(e.muscles),images:{flat:{start:e.media_url||'',main:e.media_url||''}}}))}}
+
+  // Point important : pas de seconde bibliothèque ni de seconde traduction côté client.
+  // L'admin et le client affichent exactement les champs enregistrés dans Supabase.
+  window.translatedExercise=function(e){
+    return {
+      name:e.name_en||e.name||'',
+      description:e.description_en||e.description||'',
+      instructions:Array.isArray(e.instructions_en)?e.instructions_en:(Array.isArray(e.instructions)?e.instructions:[]),
+      tips:Array.isArray(e.tips_en)?e.tips_en:(Array.isArray(e.tips)?e.tips:[])
+    };
+  };
+
   window.fetch=async function(input,init){
     const url=typeof input==='string'?input:(input&&input.url)||'';
     if(url===DATA_URL){
