@@ -3,111 +3,26 @@
   const grid=document.querySelector('#exercise-grid');
   const categories=document.querySelector('.categories');
   if(!input||!grid)return;
-
   const normalize=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[-_’']/g,' ').replace(/\s+/g,' ').trim();
-
   const aliases={
-    pecs:['pectoraux','pecs','chest','pectorals'], pectoraux:['pectoraux','pecs','chest','pectorals'], chest:['pectoraux','pecs','chest','pectorals'],
-    dos:['dos','back','lat','lats'], back:['dos','back','lat','lats'],
-    epaules:['epaules','epaule','shoulders','shoulder','delts','deltoids'], epaule:['epaules','epaule','shoulders','shoulder','delts','deltoids'], shoulders:['epaules','epaule','shoulders','shoulder','delts','deltoids'], delts:['epaules','epaule','shoulders','delts','deltoids'],
-    biceps:['biceps','brachialis','curl'], triceps:['triceps','extension','pushdown'], bras:['bras','arms','biceps','triceps'], arms:['bras','arms','biceps','triceps'],
-    fessiers:['fessiers','glutes','glute','gluteus','grand fessier'], glutes:['fessiers','glutes','glute','gluteus'],
-    quadriceps:['quadriceps','quads','quad'], quads:['quadriceps','quads','quad'], ischios:['ischios','ischio','hamstrings','hamstring'], hamstrings:['ischios','ischio','hamstrings'],
-    mollets:['mollets','calves','calf'], abdos:['abdos','abdominaux','abs','core'], abdominaux:['abdos','abdominaux','abs','core'], core:['abdos','abdominaux','abs','core'],
-    jambes:['jambes','legs','lower body'], legs:['jambes','legs','lower body'],
-    haltere:['haltere','halteres','dumbbell','dumbbells'], halteres:['haltere','halteres','dumbbell','dumbbells'], dumbbell:['haltere','halteres','dumbbell','dumbbells'],
-    barre:['barre','barbell'], barbell:['barre','barbell'], poulie:['poulie','cable','cables'], cable:['poulie','cable','cables'],
-    'poids du corps':['poids du corps','bodyweight','body weight'], bodyweight:['poids du corps','bodyweight','body weight'], elastique:['elastique','band','resistance band'], band:['elastique','band','resistance band'],
-    'developpe couche':['developpe couche','bench press','bench','barbell bench'], 'bench press':['developpe couche','bench press','bench','barbell bench'],
-    'developpe incline':['developpe incline','incline bench','incline bench press','incline'], 'incline':['developpe incline','incline bench','incline bench press','incline'],
-    'developpe militaire':['developpe militaire','shoulder press','military press','overhead press'], 'shoulder press':['developpe militaire','shoulder press','military press','overhead press'],
-    'tirage vertical':['tirage vertical','lat pulldown','pulldown','vertical pull'], 'lat pulldown':['tirage vertical','lat pulldown','pulldown','vertical pull'],
-    'tirage horizontal':['tirage horizontal','rowing','row','cable row'], rowing:['rowing','row','tirage horizontal','cable row'],
-    traction:['traction','tractions','pull up','pullup','chin up'], tractions:['traction','tractions','pull up','pullup','chin up'], 'pull up':['traction','tractions','pull up','pullup','chin up'],
-    squat:['squat','squats'], souleve:['souleve de terre','deadlift','romanian deadlift'], deadlift:['souleve de terre','deadlift','romanian deadlift'],
-    fente:['fente','fentes','lunge','lunges'], fentes:['fente','fentes','lunge','lunges'], lunge:['fente','fentes','lunge','lunges'],
-    'hip thrust':['hip thrust','poussee de hanches','glute bridge'], 'poussee de hanches':['hip thrust','poussee de hanches','glute bridge'],
-    'leg curl':['leg curl','curl jambes','ischio'], 'leg extension':['leg extension','extension quadriceps','quadriceps'],
-    'elevation laterale':['elevation laterale','lateral raise','side raise'], 'lateral raise':['elevation laterale','lateral raise','side raise'],
-    'elevation frontale':['elevation frontale','front raise'], 'front raise':['elevation frontale','front raise'],
-    'curl biceps':['curl biceps','biceps curl','curl'], 'biceps curl':['curl biceps','biceps curl','curl'],
-    'curl marteau':['curl marteau','hammer curl'], 'hammer curl':['curl marteau','hammer curl'],
-    'extension triceps':['extension triceps','triceps extension','pushdown','triceps pushdown'], pushdown:['extension triceps','triceps extension','pushdown','triceps pushdown'],
-    gainage:['gainage','plank','planks'], plank:['gainage','plank','planks']
+    pecs:['pectoraux','pecs','chest','pectorals'],pectoraux:['pectoraux','pecs','chest','pectorals'],chest:['pectoraux','pecs','chest','pectorals'],
+    dos:['dos','back','lat','lats'],back:['dos','back','lat','lats'],epaules:['epaules','epaule','shoulders','shoulder','delts','deltoids'],epaule:['epaules','epaule','shoulders','shoulder','delts','deltoids'],shoulders:['epaules','epaule','shoulders','shoulder','delts','deltoids'],delts:['epaules','epaule','shoulders','delts','deltoids'],
+    biceps:['biceps','brachialis','curl'],triceps:['triceps','extension','pushdown'],bras:['bras','arms','biceps','triceps'],arms:['bras','arms','biceps','triceps'],fessiers:['fessiers','glutes','glute','gluteus','grand fessier'],glutes:['fessiers','glutes','glute','gluteus'],
+    quadriceps:['quadriceps','quads','quad'],quads:['quadriceps','quads','quad'],ischios:['ischios','ischio','hamstrings','hamstring'],hamstrings:['ischios','ischio','hamstrings'],mollets:['mollets','calves','calf'],abdos:['abdos','abdominaux','abs','core'],abdominaux:['abdos','abdominaux','abs','core'],core:['abdos','abdominaux','abs','core'],jambes:['jambes','legs','lower body'],legs:['jambes','legs','lower body'],
+    haltere:['haltere','halteres','dumbbell','dumbbells'],halteres:['haltere','halteres','dumbbell','dumbbells'],dumbbell:['haltere','halteres','dumbbell','dumbbells'],barre:['barre','barbell'],barbell:['barre','barbell'],poulie:['poulie','cable','cables'],cable:['poulie','cable','cables'],'poids du corps':['poids du corps','bodyweight','body weight'],bodyweight:['poids du corps','bodyweight','body weight'],elastique:['elastique','band','resistance band'],band:['elastique','band','resistance band'],
+    'developpe couche':['developpe couche','bench press','bench','barbell bench'],'bench press':['developpe couche','bench press','bench','barbell bench'],'developpe':['developpe','press','pressing','bench'],
+    'developpe incline':['developpe incline','incline bench','incline bench press','incline'],incline:['developpe incline','incline bench','incline bench press','incline'],'developpe militaire':['developpe militaire','shoulder press','military press','overhead press'],'shoulder press':['developpe militaire','shoulder press','military press','overhead press'],
+    'tirage vertical':['tirage vertical','lat pulldown','pulldown','vertical pull'],'lat pulldown':['tirage vertical','lat pulldown','pulldown','vertical pull'],'tirage horizontal':['tirage horizontal','rowing','row','cable row'],rowing:['rowing','row','tirage horizontal','cable row'],
+    traction:['traction','tractions','pull up','pullup','chin up'],tractions:['traction','tractions','pull up','pullup','chin up'],'pull up':['traction','tractions','pull up','pullup','chin up'],squat:['squat','squats'],deadlift:['souleve de terre','deadlift','romanian deadlift'],'souleve de terre':['souleve de terre','deadlift','romanian deadlift'],
+    fente:['fente','fentes','lunge','lunges'],fentes:['fente','fentes','lunge','lunges'],lunge:['fente','fentes','lunge','lunges'],'hip thrust':['hip thrust','poussee de hanches','glute bridge'],'poussee de hanches':['hip thrust','poussee de hanches','glute bridge'],'leg curl':['leg curl','curl jambes','ischio'],'leg extension':['leg extension','extension quadriceps','quadriceps'],
+    'elevation laterale':['elevation laterale','lateral raise','side raise'],'lateral raise':['elevation laterale','lateral raise','side raise'],'elevation frontale':['elevation frontale','front raise'],'front raise':['elevation frontale','front raise'],'curl biceps':['curl biceps','biceps curl','curl'],'biceps curl':['curl biceps','biceps curl','curl'],'curl marteau':['curl marteau','hammer curl'],'hammer curl':['curl marteau','hammer curl'],'extension triceps':['extension triceps','triceps extension','pushdown','triceps pushdown'],pushdown:['extension triceps','triceps extension','pushdown','triceps pushdown'],gainage:['gainage','plank','planks'],plank:['gainage','plank','planks']
   };
-
-  function expandToken(token){
-    const t=normalize(token);
-    return [t,...(aliases[t]||[])].map(normalize).filter(Boolean);
-  }
-
-  function queryGroups(q){
-    const words=normalize(q).split(' ').filter(Boolean);
-    const groups=[];
-    for(let i=0;i<words.length;i++){
-      let phrase=words.slice(i,i+2).join(' ');
-      if(i<words.length-1 && aliases[phrase]){groups.push(expandToken(phrase));i++;}
-      else groups.push(expandToken(words[i]));
-    }
-    return groups;
-  }
-
-  function cardFields(card){
-    const title=normalize(card.querySelector('h3')?.textContent||'');
-    const text=normalize(card.innerText);
-    return {title,text};
-  }
-
-  function scoreCard(card,groups){
-    const {title,text}=cardFields(card);
-    let score=0;
-    let matched=0;
-    groups.forEach(group=>{
-      let best=0;
-      group.forEach(term=>{
-        if(!term)return;
-        if(title===term)best=Math.max(best,140);
-        else if(title.includes(term))best=Math.max(best,90);
-        else if(text.includes(term))best=Math.max(best,35);
-      });
-      if(best){matched++;score+=best;}
-    });
-    if(groups.length>1 && matched<groups.length)return -1;
-    const phrase=normalize(input.value);
-    if(phrase && title.includes(phrase))score+=180;
-    if(groups.length>1 && matched===groups.length)score+=70;
-    return score;
-  }
-
-  function isVisible(card){return card.style.display!=='none' && !card.classList.contains('hs-favorites-hidden');}
-  function updateCount(n){
-    const count=document.querySelector('#count'),empty=document.querySelector('#empty');
-    if(count)count.textContent=`${n} exercice${n>1?'s':''}`;
-    if(empty)empty.hidden=n>0;
-  }
-
-  function runSearch(){
-    const q=normalize(input.value),cards=[...grid.querySelectorAll('.card')];
-    if(!q){
-      cards.forEach(c=>{c.style.display=c.dataset.armHidden==='1'?'none':'';});
-      updateCount(cards.filter(isVisible).length);return;
-    }
-    const groups=queryGroups(q);
-    const ranked=[];
-    cards.forEach(card=>{
-      if(card.dataset.armHidden==='1'){card.style.display='none';return;}
-      const score=scoreCard(card,groups);
-      card.style.display=score>0?'':'none';
-      if(score>0)ranked.push({card,score});
-    });
-    ranked.sort((a,b)=>b.score-a.score).forEach(({card})=>grid.appendChild(card));
-    updateCount(cards.filter(isVisible).length);
-  }
-
-  input.addEventListener('input',runSearch);
-  input.addEventListener('search',runSearch);
-  if(categories)categories.addEventListener('click',()=>setTimeout(runSearch,40),false);
-  const observer=new MutationObserver(()=>{if(normalize(input.value))runSearch();});
-  observer.observe(grid,{childList:true,subtree:true});
-  runSearch();
+  function expandToken(token){const t=normalize(token);return [t,...(aliases[t]||[])].map(normalize).filter(Boolean);}
+  function queryGroups(q){const words=normalize(q).split(' ').filter(Boolean),groups=[];for(let i=0;i<words.length;i++){const phrase=words.slice(i,i+2).join(' ');if(i<words.length-1&&aliases[phrase]){groups.push(expandToken(phrase));i++;}else groups.push(expandToken(words[i]));}return groups;}
+  function scoreCard(card,groups){const title=normalize(card.querySelector('h3')?.textContent||''),text=normalize(card.innerText);let score=0,matched=0;groups.forEach(group=>{let best=0;group.forEach(term=>{if(title===term)best=Math.max(best,140);else if(title.includes(term))best=Math.max(best,90);else if(text.includes(term))best=Math.max(best,35);});if(best){matched++;score+=best;}});if(groups.length>1&&matched<groups.length)return -1;const phrase=normalize(input.value);if(phrase&&title.includes(phrase))score+=180;if(groups.length>1&&matched===groups.length)score+=70;return score;}
+  function isVisible(card){return card.style.display!=='none'&&!card.classList.contains('hs-favorites-hidden');}
+  function updateCount(n){const count=document.querySelector('#count'),empty=document.querySelector('#empty');if(count)count.textContent=`${n} exercice${n>1?'s':''}`;if(empty)empty.hidden=n>0;}
+  let reordering=false;
+  function runSearch(){const q=normalize(input.value),cards=[...grid.querySelectorAll('.card')];if(!q){cards.forEach(c=>{c.style.display=c.dataset.armHidden==='1'?'none':'';});updateCount(cards.filter(isVisible).length);return;}const groups=queryGroups(q),ranked=[];cards.forEach(card=>{if(card.dataset.armHidden==='1'){card.style.display='none';return;}const score=scoreCard(card,groups);card.style.display=score>0?'':'none';if(score>0)ranked.push({card,score});});ranked.sort((a,b)=>b.score-a.score);reordering=true;ranked.forEach(({card})=>grid.appendChild(card));reordering=false;updateCount(cards.filter(isVisible).length);}
+  input.addEventListener('input',runSearch);input.addEventListener('search',runSearch);if(categories)categories.addEventListener('click',()=>setTimeout(runSearch,40),false);const observer=new MutationObserver(()=>{if(!reordering&&normalize(input.value))runSearch();});observer.observe(grid,{childList:true,subtree:true});runSearch();
 })();
