@@ -35,5 +35,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="translations-fr.js"></script><script src="translations-extra-fr.js"></script><script src="translations-batch-2-fr.js"></script><script src="translations-batch-3-fr.js"></script><script src="translations-batch-4-fr.js"></script><script src="translations-all-fr.js"></script>
   <script src="ios-fix.js"></script><script src="app.js"></script><script src="arm-filters.js"></script><script src="search-enhancer.js"></script><script src="search-clear.js"></script><script src="modal-enhancer.js"></script><script src="modal-scroll-fix.js"></script><script src="fiche-app.js"></script><script src="modal-final-repair.js"></script><script src="card-enhancer.js"></script><script src="program-link.js"></script><script src="favorites.js"></script><script src="keyboard-nav.js"></script><script src="modal-a11y.js"></script><script src="image-lazy.js"></script><script src="ergonomie.js"></script>
+  <script>
+    (function(){
+      const params=new URLSearchParams(location.search);
+      if(params.get('fiche')!=='1') return;
+      document.body.classList.add('fiche-only');
+      const id=params.get('exercice');
+      const modal=document.getElementById('exercise-modal');
+      const close=document.getElementById('close-modal');
+      function tryOpen(){
+        if(id && typeof window.openExercise==='function'){
+          try{ window.openExercise(id,false); if(modal?.open) return true; }catch(e){}
+        }
+        return false;
+      }
+      let tries=0;
+      const timer=setInterval(()=>{ if(tryOpen() || ++tries>100) clearInterval(timer); },100);
+      close?.addEventListener('click',()=>window.parent!==window&&window.parent.postMessage({type:'hs-close-fiche'},'*'));
+      window.addEventListener('keydown',e=>{
+        if(e.key==='Escape' && window.parent!==window) window.parent.postMessage({type:'hs-close-fiche'},'*');
+      });
+    })();
+  </script>
+  <style>
+    body.fiche-only{margin:0;background:#111;overflow:hidden}
+    body.fiche-only>header,body.fiche-only>main,body.fiche-only>footer{display:none!important}
+    body.fiche-only #exercise-modal{max-width:1000px;width:calc(100vw - 8px);max-height:calc(100dvh - 8px);margin:auto}
+    body.fiche-only #exercise-modal::backdrop{background:#111}
+  </style>
 </body>
 </html>
