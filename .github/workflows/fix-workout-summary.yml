@@ -32,3 +32,4 @@ jobs:
           git rm .github/workflows/fix-workout-summary.yml
           git commit -m 'Remove temporary workout summary workflow'
           git push
+# trigger
