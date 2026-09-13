@@ -1,0 +1,19 @@
+name: Patch Level 2 history
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-level2-history.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/patch_level2_history.py
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git commit -m 'Add Level 2 performance history' || exit 0
+          git push
