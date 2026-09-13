@@ -1,6 +1,7 @@
 name: patch-first-set-defaults
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
 permissions:
   contents: write
 jobs:
