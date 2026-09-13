@@ -1,0 +1,32 @@
+name: Level 2 evolution final wiring
+on:
+  push:
+    paths:
+      - '.github/workflows/level2-evolution-final.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wire evolution view
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('programmes.html'); s=p.read_text()
+          old='<div id="historyContent"></div>'
+          new='<div id="historyEvolution" class="history-evolution"></div>'+old
+          if 'id="historyEvolution"' not in s:
+            s=s.replace(old,new,1)
+          s=s.replace("function openHistory(){renderHistory();document.getElementById('historyOverlay').hidden=false;document.body.style.overflow='hidden'}", "function openHistory(){renderHistory();renderExerciseEvolution();document.getElementById('historyOverlay').hidden=false;document.body.style.overflow='hidden'}",1)
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Connect Level 2 evolution view'
+          git push
