@@ -1,6 +1,8 @@
 name: patch-live-flow
 on:
-  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/patch-live-flow.yml'
 permissions:
   contents: write
 jobs:
@@ -18,9 +20,6 @@ jobs:
           new="""function validateAllSets(){const st=workoutState;if(!st)return;const rows=st.values[st.exerciseIndex]||[];const first=rows[0]||{};if(first.load!==''||first.reps!==''){rows.forEach(v=>{v.load=first.load;v.reps=first.reps;v.done=true})}else{rows.forEach(v=>v.done=true)}renderWorkout();const rest=st.session.items[st.exerciseIndex].rest;if(rest)startRest(rest);setTimeout(()=>{if(!workoutState||workoutState!==st)return;if(st.exerciseIndex<st.session.items.length-1){nextExercise(true)}else{finishWorkout()}},450)}function nextExercise(force){const st=workoutState;if(!st)return;const vals=st.values[st.exerciseIndex]||[];if(!force&&!vals.every(v=>v.done)){if(!confirm('Certaines séries ne sont pas validées. Passer quand même à l’exercice suivant ?'))return}if(st.exerciseIndex>=st.session.items.length-1){finishWorkout();return}st.exerciseIndex++;restLeft=0;renderWorkout()}"""
           if old not in s: raise SystemExit('target validation block not found')
           s=s.replace(old,new,1)
-          old2="""function renderWorkout(){const st=workoutState;if(!st)return;const r=st.session.items[st.exerciseIndex],total=st.session.items.length,id=r.exercise_id,name=st.session.names[id]||'Exercice';document.getElementById('workoutTitle').textContent=name;document.getElementById('workoutProgress').style.width=((st.exerciseIndex+1)/Math.max(total,1)*100)+'%';"""
-          new2="""function renderWorkout(){const st=workoutState;if(!st)return;const r=st.session.items[st.exerciseIndex],total=st.session.items.length,id=r.exercise_id,name=st.session.names[id]||'Exercice';document.getElementById('workoutTitle').textContent=name;document.getElementById('workoutProgress').style.width=((st.exerciseIndex+1)/Math.max(total,1)*100)+'%';"""
-          if old2 not in s: raise SystemExit('render target not found')
           p.write_text(s)
           PY
       - name: Commit
