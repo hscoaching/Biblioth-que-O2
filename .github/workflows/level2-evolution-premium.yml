@@ -1,0 +1,56 @@
+name: Level 2 evolution premium
+on:
+  push:
+    paths:
+      - '.github/workflows/level2-evolution-premium.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refine evolution UI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('programmes.html'); s=p.read_text()
+          css='''<style>
+          .history-evolution{margin-top:12px;background:#101010;border:1px solid #292929;border-radius:14px;padding:14px}
+          .history-evolution-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+          .history-evolution-title{font-size:12px;font-weight:900}
+          .history-evolution-sub{font-size:9px;color:#666;margin-top:3px}
+          .history-evolution-value{font-size:16px;font-weight:900}
+          .history-evolution-chart{display:flex;align-items:flex-end;gap:5px;height:92px;margin-top:16px;padding-top:8px;border-bottom:1px solid #252525}
+          .history-bar{flex:1;min-width:8px;background:#777;border-radius:4px 4px 0 0;position:relative;opacity:.8}
+          .history-bar:last-child{background:#fff;opacity:1}
+          .history-bar span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:8px;color:#888;white-space:nowrap;margin-bottom:4px}
+          .history-evolution-legend{display:flex;justify-content:space-between;margin-top:7px;font-size:8px;color:#666}
+          .history-progress-up{font-size:9px;color:#aaa;margin-top:9px}
+          .history-progress-up strong{color:#fff}
+          .history-select{width:100%;margin-top:10px;border:1px solid #292929;background:#171717;color:#fff;border-radius:9px;padding:9px;font-size:10px}
+          .history-evolution-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}
+          .history-evolution-stat{background:#151515;border:1px solid #292929;border-radius:10px;padding:9px}
+          .history-evolution-stat span{display:block;color:#666;font-size:8px;text-transform:uppercase;letter-spacing:.8px}
+          .history-evolution-stat strong{display:block;margin-top:4px;font-size:12px}
+          @media(max-width:650px){.history-evolution{padding:12px}.history-evolution-chart{height:82px}.history-bar span{font-size:7px}.history-evolution-stat strong{font-size:11px}}
+          </style>'''
+          if '.history-evolution-stats{' not in s:
+            s=s.replace('</style>',css+'</style>',1)
+          old="const delta=first?Math.round(((last-first)/first)*100):0;"
+          new="const delta=first?Math.round(((last-first)/first)*100):0; const previous=rows.length>1?rows[rows.length-2].load:null;"
+          s=s.replace(old,new,1)
+          old2="'<div class=\"history-evolution-head\"><div><div class=\"history-evolution-title\">Évolution de la charge</div><div class=\"history-evolution-sub\">'+esc(name)+' · meilleures charges par séance</div></div><div class=\"history-evolution-value\">'+last+' kg</div></div>"
+          new2="'<div class=\"history-evolution-head\"><div><div class=\"history-evolution-title\">Évolution de ta charge</div><div class=\"history-evolution-sub\">'+esc(name)+' · suivi séance après séance</div></div><div class=\"history-evolution-value\">'+last+' kg</div></div>'+'<div class=\"history-evolution-stats\"><div class=\"history-evolution-stat\"><span>Dernière charge</span><strong>'+last+' kg</strong></div><div class=\"history-evolution-stat\"><span>Évolution</span><strong>'+(delta>0?'+'+delta+'%':delta<0?delta+'%':'—')+'</strong></div></div>'"
+          s=s.replace(old2,new2,1)
+          s=s.replace("meilleures charges par séance", "suivi séance après séance")
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Refine Level 2 evolution presentation'
+          git push
