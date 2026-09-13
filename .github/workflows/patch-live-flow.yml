@@ -1,0 +1,29 @@
+name: patch-live-flow
+on:
+  push:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch live workout flow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('programmes.html')
+          s=p.read_text()
+          old="""function validateAllSets(){const st=workoutState;if(!st)return;const rows=st.values[st.exerciseIndex]||[];const first=rows[0]||{};if(first.load!==''||first.reps!==''){rows.forEach(v=>{v.load=first.load;v.reps=first.reps;v.done=true})}else{rows.forEach(v=>v.done=true)}renderWorkout();const rest=st.session.items[st.exerciseIndex].rest;if(rest)startRest(rest)}function nextExercise(){const vals=workoutState.values[workoutState.exerciseIndex];if(!vals.every(v=>v.done)){if(!confirm('Certaines séries ne sont pas validées. Passer quand même à l’exercice suivant ?'))return}workoutState.exerciseIndex++;restLeft=0;renderWorkout()}"""
+          new="""function validateAllSets(){const st=workoutState;if(!st)return;const rows=st.values[st.exerciseIndex]||[];const first=rows[0]||{};if(first.load!==''||first.reps!==''){rows.forEach(v=>{v.load=first.load;v.reps=first.reps;v.done=true})}else{rows.forEach(v=>v.done=true)}renderWorkout();const rest=st.session.items[st.exerciseIndex].rest;if(rest)startRest(rest);setTimeout(()=>{if(!workoutState||workoutState!==st)return;if(st.exerciseIndex<st.session.items.length-1){nextExercise(true)}else{finishWorkout()}},450)}function nextExercise(force){const st=workoutState;if(!st)return;const vals=st.values[st.exerciseIndex]||[];if(!force&&!vals.every(v=>v.done)){if(!confirm('Certaines séries ne sont pas validées. Passer quand même à l’exercice suivant ?'))return}if(st.exerciseIndex>=st.session.items.length-1){finishWorkout();return}st.exerciseIndex++;restLeft=0;renderWorkout()}"""
+          if old not in s: raise SystemExit('target validation block not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add programmes.html
+          git diff --cached --quiet || git commit -m "Improve live workout progression"
+          git push
