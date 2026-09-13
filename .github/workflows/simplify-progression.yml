@@ -1,0 +1,43 @@
+name: Simplify progression page
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  simplify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simplify progression UI
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('programmes.html')
+          s=p.read_text()
+
+          a=s.index('function renderHistory(){')
+          b=s.index('\n\nfunction setupContact', a)
+          new_history="""function renderHistory(){const h=readWorkoutHistory(),el=document.getElementById('historyContent');if(!h.length){el.innerHTML='<div class=\"history-empty\"><strong>Aucune séance enregistrée</strong><br>Termine une séance pour commencer à suivre ta progression.</div>';return}el.innerHTML='<div class=\"history-section-title\">Dernières séances</div>'+h.slice(0,8).map(s=>'<article class=\"history-card\"><div class=\"history-card-head\"><div><div class=\"history-date\">'+new Date(s.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})+'</div><div class=\"history-program\">'+esc(s.program_name)+'</div><div class=\"history-meta\">'+esc(s.session_name||'Séance')+'</div></div><div class=\"history-duration\">'+s.duration_minutes+' min</div></div></article>').join('')}"""
+          s=s[:a]+new_history+s[b:]
+
+          a=s.index('function renderExerciseEvolution(){')
+          b=s.index('\n</script><div id="workoutSummaryOverlay"', a)
+          new_evolution="""function renderExerciseEvolution(){const h=readWorkoutHistory(),el=document.getElementById('historyEvolution');if(!el)return;const all=[];h.forEach(session=>(session.exercises||[]).forEach(e=>{const loads=(e.sets||[]).map(x=>Number(x.load)).filter(x=>x>0);if(loads.length)all.push({id:String(e.exercise_id),name:e.name||'Exercice',load:Math.max(...loads),date:session.date})}));const ids=[...new Set(all.map(x=>x.id))];if(!ids.length){el.innerHTML='<div class=\"history-empty\">Termine une séance pour voir ton évolution.</div>';return}const id=el.dataset.exercise||ids[0],rows=all.filter(x=>x.id===id).slice(0,8).reverse(),name=rows[0]?.name||'Exercice',first=rows[0]?.load||0,last=rows.at(-1)?.load||0,max=Math.max(...rows.map(x=>x.load),1),delta=first?Math.round(((last-first)/first)*100):0;el.innerHTML='<div class=\"history-evolution-title\">'+esc(name)+'</div><div class=\"history-evolution-sub\">Évolution de ta charge</div><div class=\"history-evolution-main\"><strong>'+last+' kg</strong><span>'+(delta>0?'+':'')+delta+'% depuis la première séance</span></div><select class=\"history-select\" onchange=\"document.getElementById(\\'historyEvolution\\').dataset.exercise=this.value;renderExerciseEvolution()\">'+ids.map(x=>{const r=all.find(a=>a.id===x);return '<option value=\"'+esc(x)+'\" '+(x===id?'selected':'')+'>'+esc(r.name)+'</option>'}).join('')+'</select><div class=\"history-evolution-chart\">'+rows.map(x=>'<div class=\"history-bar\" style=\"height:'+Math.max(8,Math.round((x.load/max)*72))+'px\"><span>'+x.load+' kg</span></div>').join('')+'</div><div class=\"history-evolution-legend\"><span>'+new Date(rows[0].date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})+'</span><span>'+new Date(rows.at(-1).date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})+'</span></div>')}"""
+          s=s[:a]+new_evolution+s[b:]
+
+          css="""<style id=\"simple-progression\">.history-panel{width:min(560px,100%);padding:20px}.history-head{margin-bottom:14px}.history-kicker{font-size:8px}.history-head h2{font-size:24px;margin-top:4px}.history-evolution{margin:0 0 18px;background:#101010;border:1px solid #292929;border-radius:15px;padding:15px}.history-evolution-title{font-size:15px;font-weight:900}.history-evolution-sub{font-size:9px;color:#666;margin-top:3px}.history-evolution-main{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-top:14px}.history-evolution-main strong{font-size:30px}.history-evolution-main span{font-size:10px;color:#aaa;text-align:right}.history-select{margin-top:14px}.history-evolution-chart{height:82px;margin-top:15px;gap:6px}.history-bar{background:#555}.history-bar:last-child{background:#fff}.history-bar span{font-size:7px}.history-evolution-legend{font-size:8px}.history-section-title{margin:0 0 8px}.history-card{padding:13px;margin-bottom:8px}.history-card-head{align-items:center}.history-date{font-size:8px}.history-program{font-size:13px;margin-top:4px}.history-meta{font-size:9px;margin-top:3px}.history-duration{font-size:9px}.history-exercise,.history-best,.history-note{display:none}.history-empty{padding:24px 10px}.history-empty strong{font-size:13px}@media(max-width:650px){.history-overlay{padding:10px}.history-panel{max-height:94vh;border-radius:18px;padding:17px 13px}.history-head h2{font-size:22px}.history-evolution{padding:14px}.history-evolution-main strong{font-size:27px}.history-card{padding:12px}}</style>"""
+          s=s.replace('</head>',css+'</head>',1)
+
+          required=['function renderHistory(){','function renderExerciseEvolution(){','workoutSummaryOverlay','historyEvolution','loadPrograms()']
+          for marker in required:
+              if marker not in s: raise SystemExit('missing marker: '+marker)
+          p.write_text(s)
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git commit -m 'Simplify progression page' || exit 0
+          git push origin HEAD:main
