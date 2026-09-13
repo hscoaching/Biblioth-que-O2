@@ -1,0 +1,36 @@
+name: Wire progression button
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch button safely
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('programmes.html')
+          s=p.read_text()
+          old='onclick="openHistory()"'
+          new='onclick="location.href=\'progression-simple.html\'"'
+          n=s.count(old)
+          if n == 0:
+              raise SystemExit('progression button not found')
+          s=s.replace(old,new)
+          p.write_text(s)
+          print('patched', n, 'buttons')
+      - name: Validate
+        run: |
+          grep -q "progression-simple.html" programmes.html
+          test "$(grep -o 'onclick=\"openHistory()\"' programmes.html | wc -l)" -eq 0
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git commit -m 'Wire progression button to simple page' || exit 0
+          git push origin HEAD:main
