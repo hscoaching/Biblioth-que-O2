@@ -1,0 +1,51 @@
+name: Fix workout fiche click
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch workout fiche interaction
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('programmes.html')
+          s = p.read_text(encoding='utf-8')
+          marker = "/* HS_WORKOUT_FICHE_FIX */"
+          if marker not in s:
+              css = ".workout-exercise{cursor:pointer;touch-action:manipulation}.workout-exercise:active{transform:scale(.995)}"
+              s = s.replace('</style>', css + '</style>', 1)
+              js = r'''/* HS_WORKOUT_FICHE_FIX */
+          function openWorkoutFiche(e,id){
+            if(e){e.preventDefault();e.stopPropagation()}
+            const overlay=document.getElementById('ficheOverlay');
+            const frame=document.getElementById('ficheFrame');
+            if(!overlay||!frame||id==null)return;
+            overlay.hidden=false;
+            frame.src='fiche.html?id='+encodeURIComponent(id);
+          }
+          document.addEventListener('click',function(e){
+            const card=e.target.closest?.('.workout-exercise');
+            if(!card||e.target.closest('button,input,select,textarea,a'))return;
+            const st=window.workoutState;
+            if(!st)return;
+            const i=Number(st.index ?? st.currentIndex ?? st.current ?? 0);
+            const list=st.exercises||st.items||[];
+            const ex=list[i];
+            const id=ex?.exercise_id ?? ex?.id;
+            if(id!=null)openWorkoutFiche(e,id);
+          },{passive:false});
+          '''
+              s = s.replace('</script>', js + '</script>', 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git commit -m 'Fix workout exercise fiche interaction'
+          git push
