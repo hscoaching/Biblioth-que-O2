@@ -1,0 +1,32 @@
+name: Level 2 evolution wiring
+on:
+  push:
+    paths:
+      - '.github/workflows/level2-evolution-fix.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wire evolution panel
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('programmes.html'); s=p.read_text()
+          marker='<div id="historyEvolution" class="history-evolution"></div>'
+          if marker not in s:
+            s=s.replace('<div class="history-toolbar"',marker+'<div class="history-toolbar"',1)
+          if 'renderExerciseEvolution();' not in s:
+            s=s.replace("renderHistoryPremium();", "renderHistoryPremium();\n  renderExerciseEvolution();", 1)
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Wire Level 2 evolution panel'
+          git push
