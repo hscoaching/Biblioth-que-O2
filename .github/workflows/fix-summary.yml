@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - '.github/workflows/fix-summary.yml'
+permissions:
+  contents: write
 jobs:
   patch:
     runs-on: ubuntu-latest
