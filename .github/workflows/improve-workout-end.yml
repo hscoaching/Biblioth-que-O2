@@ -14,22 +14,58 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('programmes.html')
           s=p.read_text()
           if 'HS_WORKOUT_END_SCREEN' in s:
               raise SystemExit('already patched')
-          marker='</body>'
           css='''\n<style id="HS_WORKOUT_END_SCREEN">\n.workout-complete{position:fixed;inset:0;z-index:5000;background:rgba(5,5,6,.98);display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}\n.workout-complete-card{width:min(100%,430px);text-align:center;padding:34px 22px 26px;border:1px solid #29292d;border-radius:24px;background:#101012;box-shadow:0 24px 80px rgba(0,0,0,.45)}\n.workout-complete-mark{width:58px;height:58px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;border:1px solid #fff;font-size:25px}\n.workout-complete-kicker{font-size:10px;letter-spacing:.18em;color:#8d8d93;font-weight:700;margin-bottom:8px}\n.workout-complete-card h2{font-size:27px;line-height:1.05;margin:0 0 8px;color:#fff}\n.workout-complete-name{font-size:13px;color:#9a9aa1;margin-bottom:24px}\n.workout-complete-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px}\n.workout-complete-stat{padding:13px 7px;border:1px solid #252529;border-radius:13px;background:#0b0b0d}\n.workout-complete-stat strong{display:block;font-size:18px;color:#fff}\n.workout-complete-stat span{display:block;font-size:8px;color:#77777e;text-transform:uppercase;letter-spacing:.08em;margin-top:4px}\n.workout-complete-details{text-align:left;border-top:1px solid #242428;border-bottom:1px solid #242428;padding:13px 0;margin-bottom:20px}\n.workout-complete-detail{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:11px}\n.workout-complete-detail span:first-child{color:#77777e}.workout-complete-detail span:last-child{color:#ddd}\n.workout-complete-btn{width:100%;border:0;border-radius:13px;background:#fff;color:#080809;padding:14px 16px;font-weight:800;font-size:12px;cursor:pointer}\n</style>\n'''
-          if marker not in s: raise SystemExit('body marker missing')
-          s=s.replace(marker,css+marker,1)
-          old="""function finishWorkout(){\n  alert('Séance terminée 💪');\n}"""
-          new="""function finishWorkout(){\n  if(!workoutState)return;\n  const st=workoutState;\n  const items=st.session.items||[];\n  let completedSets=0,totalSets=0;\n  items.forEach((r,i)=>{\n    const sets=Math.max(1,Number(r.sets)||1);\n    totalSets+=sets;\n    const vals=st.values[i]||[];\n    completedSets+=vals.filter(v=>v&&v.done).length;\n  });\n  const started=st.startedAt||Date.now();\n  const duration=Math.max(1,Math.round((Date.now()-started)/60000));\n  const title=st.session.name||'Séance';\n  let overlay=document.getElementById('workoutComplete');\n  if(!overlay){\n    overlay=document.createElement('div');\n    overlay.id='workoutComplete';\n    overlay.className='workout-complete';\n    document.body.appendChild(overlay);\n  }\n  overlay.innerHTML=`<div class="workout-complete-card">\n    <div class="workout-complete-mark">✓</div>\n    <div class="workout-complete-kicker">SÉANCE TERMINÉE</div>\n    <h2>Bien joué 💪</h2>\n    <div class="workout-complete-name">${esc(title)}</div>\n    <div class="workout-complete-stats">\n      <div class="workout-complete-stat"><strong>${items.length}</strong><span>Exercices</span></div>\n      <div class="workout-complete-stat"><strong>${completedSets}/${totalSets}</strong><span>Séries</span></div>\n      <div class="workout-complete-stat"><strong>${duration} min</strong><span>Durée</span></div>\n    </div>\n    <div class="workout-complete-details">\n      <div class="workout-complete-detail"><span>Programme</span><span>${esc(window.__currentProgram?.name_fr||window.__currentProgram?.name||'Programme HS Coaching')}</span></div>\n      <div class="workout-complete-detail"><span>Séries réalisées</span><span>${completedSets} sur ${totalSets}</span></div>\n    </div>\n    <button class="workout-complete-btn" type="button" onclick="exitWorkoutComplete()">Retour au programme</button>\n  </div>`;\n  document.getElementById('workoutOverlay').hidden=true;\n}\nfunction exitWorkoutComplete(){\n  const el=document.getElementById('workoutComplete');\n  if(el)el.remove();\n  workoutState=null;\n  document.body.style.overflow='hidden';\n}"""
-          if old not in s: raise SystemExit('finishWorkout target missing')
-          s=s.replace(old,new,1)
-          target='workoutState={session:s,exerciseIndex:0,values:{}};'
-          repl="workoutState={session:s,exerciseIndex:0,values:{},startedAt:Date.now()};"
-          if target not in s: raise SystemExit('workoutState target missing')
-          s=s.replace(target,repl,1)
+          pos=s.rfind('</body>')
+          if pos<0: raise SystemExit('body marker missing')
+          s=s[:pos]+css+s[pos:]
+          new_finish="""function finishWorkout(){
+  if(!workoutState)return;
+  const st=workoutState;
+  const items=st.session.items||[];
+  let completedSets=0,totalSets=0;
+  items.forEach((r,i)=>{
+    const sets=Math.max(1,Number(r.sets)||1);
+    totalSets+=sets;
+    const vals=st.values[i]||[];
+    completedSets+=vals.filter(v=>v&&v.done).length;
+  });
+  const duration=Math.max(1,Math.round((Date.now()-(st.startedAt||Date.now()))/60000));
+  const title=st.session.name||'Séance';
+  let overlay=document.getElementById('workoutComplete');
+  if(!overlay){overlay=document.createElement('div');overlay.id='workoutComplete';overlay.className='workout-complete';document.body.appendChild(overlay)}
+  overlay.innerHTML=`<div class="workout-complete-card">
+    <div class="workout-complete-mark">✓</div>
+    <div class="workout-complete-kicker">SÉANCE TERMINÉE</div>
+    <h2>Bien joué 💪</h2>
+    <div class="workout-complete-name">${esc(title)}</div>
+    <div class="workout-complete-stats">
+      <div class="workout-complete-stat"><strong>${items.length}</strong><span>Exercices</span></div>
+      <div class="workout-complete-stat"><strong>${completedSets}/${totalSets}</strong><span>Séries</span></div>
+      <div class="workout-complete-stat"><strong>${duration} min</strong><span>Durée</span></div>
+    </div>
+    <div class="workout-complete-details">
+      <div class="workout-complete-detail"><span>Programme</span><span>${esc(activeProgram?.name_fr||activeProgram?.name||'Programme HS Coaching')}</span></div>
+      <div class="workout-complete-detail"><span>Séries réalisées</span><span>${completedSets} sur ${totalSets}</span></div>
+    </div>
+    <button class="workout-complete-btn" type="button" onclick="exitWorkoutComplete()">Retour au programme</button>
+  </div>`;
+  document.getElementById('workoutOverlay').hidden=true;
+}
+function exitWorkoutComplete(){
+  const el=document.getElementById('workoutComplete');
+  if(el)el.remove();
+  workoutState=null;
+  document.body.style.overflow='hidden';
+}"""
+          m=re.search(r'function\s+finishWorkout\s*\(\)\s*\{.*?\}\s*(?=function\s+closeWorkout|function\s+nextExercise|</script>)',s,re.S)
+          if not m: raise SystemExit('finishWorkout function not found')
+          s=s[:m.start()]+new_finish+'\n'+s[m.end():]
+          s=s.replace('workoutState={session:s,exerciseIndex:0,values:{}};','workoutState={session:s,exerciseIndex:0,values:{},startedAt:Date.now()};',1)
           p.write_text(s)
           PY
       - name: Commit patch
@@ -37,5 +73,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add programmes.html
-          git commit -m 'Improve workout completion screen' || exit 0
+          git commit -m 'Improve workout completion screen'
           git push
