@@ -10,34 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch programmes
+      - name: Patch UX
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('programmes.html')
           s=p.read_text()
-          css='''\n.history-toolbar{display:flex;gap:8px;margin:0 0 14px}.history-filter{border:1px solid #292929;background:#101010;color:#999;border-radius:10px;padding:9px 11px;font-size:10px;font-weight:800}.history-filter.active{background:#fff;color:#000}.history-card{transition:border-color .18s,transform .18s}.history-card:active{transform:scale(.995)}.history-compare{font-size:9px;margin-top:7px;color:#777}.history-compare.up{color:#fff}.history-compare.down{color:#aaa}.history-best{position:relative}.history-best small{display:block;color:#666;font-size:8px;margin-top:3px}.history-empty strong{display:block;color:#aaa;font-size:13px;margin-bottom:6px}.history-note{border-top:1px solid #222;padding-top:12px}.history-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.history-duration{font-size:9px;color:#777;white-space:nowrap}.history-exercise span:last-child{font-weight:800;text-align:right}.history-exercise{align-items:center}\n@media(max-width:650px){.history-toolbar{position:sticky;top:-19px;z-index:2;padding:4px 0 8px;background:#151515}.history-filter{flex:1}.history-card{padding:12px}.history-exercise{gap:8px}.history-exercise span:last-child{max-width:58%;line-height:1.35}}\n'''
+          css='''\n.history-toolbar{display:flex;gap:8px;margin:0 0 14px}.history-filter{border:1px solid #292929;background:#101010;color:#999;border-radius:10px;padding:9px 11px;font-size:10px;font-weight:800}.history-filter.active{background:#fff;color:#000}.history-card{transition:border-color .18s,transform .18s}.history-card:active{transform:scale(.995)}.history-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.history-duration{font-size:9px;color:#777;white-space:nowrap}.history-compare{font-size:9px;margin-top:7px;color:#777}.history-compare.up{color:#fff}.history-compare.down{color:#aaa}.history-best{position:relative}.history-best small{display:block;color:#666;font-size:8px;margin-top:3px}.history-empty strong{display:block;color:#aaa;font-size:13px;margin-bottom:6px}.history-note{border-top:1px solid #222;padding-top:12px}\n@media(max-width:650px){.history-toolbar{position:sticky;top:-19px;z-index:2;padding:4px 0 8px;background:#151515}.history-filter{flex:1}.history-card{padding:12px}.history-exercise{gap:8px}.history-exercise span:last-child{max-width:58%;line-height:1.35}}\n'''
           i=s.find('</style>')
-          if i!=-1 and '.history-toolbar{' not in s:s=s[:i]+css+s[i:]
-          a=s.find('function renderHistory(){'); depth=0; end=None
-          if a!=-1:
-            for j in range(a,len(s)):
-              if s[j]=='{': depth+=1
-              elif s[j]=='}':
-                depth-=1
-                if depth==0: end=j+1; break
-          if a!=-1 and end:
-            fn='''function renderHistory(filter='all'){
-  const h=readWorkoutHistory(),el=document.getElementById('historyContent');
-  if(!h.length){el.innerHTML='<div class="history-empty"><strong>Pas encore de progression</strong>Termine ta première séance pour commencer à suivre tes performances.</div>';return}
-  const visible=filter==='program'?h.filter(s=>String(s.program_id)===String(activeProgram?.id)):h;
-  const sessions=visible.slice(0,8),latest={},previous={};
-  h.forEach(s=>(s.exercises||[]).forEach(e=>{const u=(e.sets||[]).filter(x=>x.load!==''||x.reps!=='');if(!u.length)return;if(!latest[e.exercise_id])latest[e.exercise_id]={...e,sessionDate:s.date};else if(!previous[e.exercise_id])previous[e.exercise_id]={...e,sessionDate:s.date}}));
-  const best=Object.values(latest).slice(0,8),escv=v=>esc(String(v??'')),perf=e=>(e.sets||[]).filter(x=>x.load!==''||x.reps!=='').map(x=>escv((x.load||'—')+' kg × '+(x.reps||'—'))).join(' · '),top=e=>{const x=(e.sets||[]).filter(v=>Number(v.load)>0);return x.length?Math.max(...x.map(v=>Number(v.load))):0};
-  el.innerHTML='<div class="history-toolbar"><button class="history-filter '+(filter==='all'?'active':'')+'" onclick="renderHistory(\\'all\\')">Toutes</button><button class="history-filter '+(filter==='program'?'active':'')+'" onclick="renderHistory(\\'program\\')">Ce programme</button></div><div class="history-section-title">Séances récentes</div>'+(sessions.length?sessions.map(s=>'<article class="history-card"><div class="history-card-head"><div><div class="history-date">'+new Date(s.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})+'</div><div class="history-program">'+escv(s.program_name)+'</div></div><div class="history-duration">'+s.duration_minutes+' min</div></div><div class="history-meta">'+escv(s.session_name)+' · '+(s.exercises||[]).length+' exercices</div>'+(s.exercises||[]).filter(e=>(e.sets||[]).length).slice(0,5).map(e=>'<div class="history-exercise"><span><strong>'+escv(e.name)+'</strong></span><span>'+perf(e)+'</span></div>').join('')+'</article>').join(''):'<div class="history-empty">Aucune séance pour ce programme.</div>')+(best.length?'<div class="history-section-title">Dernières performances</div>'+best.map(e=>{const d=top(e)-(previous[e.exercise_id]?top(previous[e.exercise_id]):0),c=d>0?'up':d<0?'down':'',t=d>0?'↑ +'+d+' kg depuis la dernière fois':d<0?'↓ '+Math.abs(d)+' kg depuis la dernière fois':'Suivi en cours';return '<div class="history-best"><strong>'+escv(e.name)+'</strong><span>'+perf(e)+'</span><small class="history-compare '+c+'">'+t+'</small></div>'}).join(''):'')+'<div class="history-note">Les performances sont enregistrées sur cet appareil. Les données restent séparées des prescriptions du coach.</div>'
-}'''
-            s=s[:a]+fn+s[end:]
-          s=s.replace("function finishWorkout(){\n  clearInterval(restTimer);\n  saveWorkoutHistory();","function finishWorkout(){\n  clearInterval(restTimer);\n  if(!workoutState) return;\n  saveWorkoutHistory();")
+          if i>=0 and '.history-toolbar{' not in s:
+              s=s[:i]+css+s[i:]
+          old="function finishWorkout(){\n  clearInterval(restTimer);\n  saveWorkoutHistory();"
+          new="function finishWorkout(){\n  clearInterval(restTimer);\n  if(!workoutState) return;\n  saveWorkoutHistory();"
+          s=s.replace(old,new)
           p.write_text(s)
           PY
       - name: Commit
