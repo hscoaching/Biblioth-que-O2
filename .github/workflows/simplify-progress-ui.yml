@@ -1,0 +1,42 @@
+name: Simplify progression UI
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  simplify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simplify history UI safely
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('programmes.html')
+          s=p.read_text()
+          start=s.find('<div id="historyOverlay"')
+          end=s.find('</body></html>', start)
+          if start<0 or end<0:
+              raise SystemExit('history overlay markers not found')
+          old=s[start:end]
+          new='''<div id="historyOverlay" class="history-overlay" hidden onclick="if(event.target===this)closeHistory()"><section class="history-panel"><div class="history-head"><div><div class="history-kicker">SUIVI PERSONNEL</div><h2>Ma progression</h2></div><button class="history-close" onclick="closeHistory()">×</button></div><div id="historyEvolution" class="history-evolution"></div><div id="historyContent"></div></section></div>'''
+          s=s[:start]+new+s[end:]
+          css='''<style id="hs-simple-progress">\n.history-panel{width:min(560px,calc(100% - 24px));max-height:90vh;overflow:auto;background:#101010;border:1px solid #292929;border-radius:20px;padding:18px;margin:auto;box-shadow:0 24px 80px #000c}\n.history-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}\n.history-kicker{font-size:9px;letter-spacing:1.6px;color:#666;font-weight:900}\n.history-head h2{margin:4px 0 0;font-size:25px;letter-spacing:-.7px}\n.history-close{width:36px;height:36px;border:1px solid #292929;border-radius:50%;background:#171717;color:#aaa;font-size:22px;cursor:pointer}\n.history-evolution{margin:0;background:#141414;border:1px solid #292929;border-radius:15px;padding:14px}\n.history-evolution-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}\n.history-evolution-title{font-size:12px;font-weight:900}\n.history-evolution-sub{font-size:9px;color:#666;margin-top:4px}\n.history-evolution-value{font-size:18px;font-weight:900;white-space:nowrap}\n.history-evolution-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}\n.history-evolution-stat{background:#101010;border:1px solid #292929;border-radius:10px;padding:9px}\n.history-evolution-stat span{display:block;color:#666;font-size:8px;text-transform:uppercase;letter-spacing:.7px}\n.history-evolution-stat strong{display:block;margin-top:4px;font-size:12px}\n.history-select{width:100%;margin-top:10px;border:1px solid #292929;background:#101010;color:#fff;border-radius:9px;padding:10px;font-size:10px}\n.history-evolution-chart{height:100px;display:flex;align-items:flex-end;gap:6px;margin-top:16px;padding:8px 2px 0;border-bottom:1px solid #292929}\n.history-bar{flex:1;min-width:8px;background:#555;border-radius:4px 4px 0 0;position:relative;opacity:.8}\n.history-bar:last-child{background:#fff;opacity:1}\n.history-bar span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:7px;color:#777;white-space:nowrap;margin-bottom:4px}\n.history-evolution-legend{display:flex;justify-content:space-between;margin-top:7px;font-size:8px;color:#666}\n.history-progress-up{font-size:10px;color:#aaa;margin-top:10px}\n.history-progress-up strong{color:#fff}\n.history-panel #historyContent{margin-top:12px}\n.history-panel #historyContent h3{font-size:11px;margin:14px 2px 8px;color:#aaa}\n.history-panel #historyContent .history-card{background:#141414;border:1px solid #292929;border-radius:12px;padding:11px 12px;margin-bottom:7px}\n.history-panel #historyContent .history-card strong{display:block;font-size:11px}\n.history-panel #historyContent .history-card span{display:block;color:#777;font-size:9px;margin-top:4px}\n.history-panel #historyContent .history-set{display:none!important}\n@media(max-width:650px){.history-panel{width:calc(100% - 16px);max-height:88vh;padding:14px;border-radius:18px}.history-head h2{font-size:22px}.history-evolution{padding:12px}.history-evolution-chart{height:82px}.history-evolution-stat strong{font-size:11px}}\n</style>'''
+          marker='</body></html>'
+          s=s.replace(marker,css+marker,1)
+          p.write_text(s)
+      - name: Validate
+        run: |
+          grep -q 'workoutSummaryOverlay' programmes.html
+          grep -q 'function openHistory' programmes.html
+          grep -q 'historyEvolution' programmes.html
+          grep -q 'Ma progression' programmes.html
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add programmes.html
+          git commit -m 'Simplify progression page' || exit 0
+          git push origin HEAD:main
