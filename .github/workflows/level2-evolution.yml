@@ -2,7 +2,7 @@ name: Level 2 evolution UX
 on:
   push:
     paths:
-      - '.github/workflows/level2-evolution.yml'
+      - 'README.md'
 permissions:
   contents: write
 jobs:
@@ -15,7 +15,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('programmes.html'); s=p.read_text()
-          css='''.evolution-grid{display:grid;gap:9px}.evolution-card{background:#101010;border:1px solid #292929;border-radius:14px;padding:13px}.evolution-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.evolution-name{font-size:11px;font-weight:900}.evolution-best{font-size:11px;font-weight:900}.evolution-sub{font-size:9px;color:#666;margin-top:3px}.evolution-chart{height:42px;display:flex;align-items:end;gap:5px;margin-top:12px;padding-bottom:2px}.evolution-bar{flex:1;min-width:5px;background:#555;border-radius:4px 4px 2px 2px}.evolution-bar.last{background:#fff}.evolution-labels{display:flex;justify-content:space-between;color:#555;font-size:7px;margin-top:3px}.evolution-delta{font-size:8px;color:#777;margin-top:8px}.evolution-delta.up{color:#fff}.evolution-delta.down{color:#aaa}@media(max-width:650px){.evolution-card{padding:12px}.evolution-chart{height:38px}}'''
+          css='.evolution-grid{display:grid;gap:9px}.evolution-card{background:#101010;border:1px solid #292929;border-radius:14px;padding:13px}.evolution-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.evolution-name{font-size:11px;font-weight:900}.evolution-best{font-size:11px;font-weight:900}.evolution-sub{font-size:9px;color:#666;margin-top:3px}.evolution-chart{height:42px;display:flex;align-items:end;gap:5px;margin-top:12px;padding-bottom:2px}.evolution-bar{flex:1;min-width:5px;background:#555;border-radius:4px 4px 2px 2px}.evolution-bar.last{background:#fff}.evolution-labels{display:flex;justify-content:space-between;color:#555;font-size:7px;margin-top:3px}.evolution-delta{font-size:8px;color:#777;margin-top:8px}.evolution-delta.up{color:#fff}.evolution-delta.down{color:#aaa}@media(max-width:650px){.evolution-card{padding:12px}.evolution-chart{height:38px}}'
           if '.evolution-grid' not in s: s=s.replace('</style>',css+'</style>',1)
           fn=r'''\nfunction renderHistoryPremium(filter='all'){
   const h=readWorkoutHistory(),el=document.getElementById('historyContent');
