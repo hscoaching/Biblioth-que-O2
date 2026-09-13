@@ -1,8 +1,6 @@
 name: patch-live-flow
 on:
   push:
-    paths:
-      - '.github/workflows/patch-live-flow.yml'
 permissions:
   contents: write
 jobs:
