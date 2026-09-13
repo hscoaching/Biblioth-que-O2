@@ -1,0 +1,42 @@
+name: Patch workout completion summary
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-workout-summary.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch programmes page
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('programmes.html')
+          s=p.read_text()
+          original=s
+          css='''.workout-summary-overlay{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.96);display:grid;place-items:center;padding:20px}.workout-summary-overlay[hidden]{display:none}.workout-summary{width:min(520px,100%);background:#151515;border:1px solid #333;border-radius:22px;padding:28px 20px;text-align:center}.workout-summary-kicker{font-size:10px;letter-spacing:1.6px;color:#777;font-weight:900}.workout-summary h2{font-size:30px;margin:9px 0 5px}.workout-summary-name{font-size:13px;color:#999;margin-bottom:24px}.workout-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}.workout-summary-stat{background:#101010;border:1px solid #292929;border-radius:13px;padding:13px 7px}.workout-summary-stat strong{display:block;font-size:20px}.workout-summary-stat span{display:block;color:#777;font-size:9px;margin-top:4px}.workout-summary-sets{font-size:11px;color:#aaa;line-height:1.5;margin-bottom:18px}.workout-summary-close{width:100%;border:0;border-radius:11px;background:#fff;color:#000;padding:14px;font-size:12px;font-weight:900;cursor:pointer}@media(max-width:650px){.workout-summary-overlay{padding:14px}.workout-summary{padding:25px 16px}.workout-summary h2{font-size:27px}}'''
+          if '.workout-summary-overlay{' not in s:
+              s=s.replace('</style>',css+'</style>',1)
+          if 'id="workoutSummaryOverlay"' not in s:
+              html='''<div id="workoutSummaryOverlay" class="workout-summary-overlay" hidden><section class="workout-summary"><div class="workout-summary-kicker">SÉANCE TERMINÉE ✓</div><h2>Bien joué 💪</h2><div id="workoutSummaryName" class="workout-summary-name"></div><div class="workout-summary-grid"><div class="workout-summary-stat"><strong id="summaryExercises">0</strong><span>EXERCICES</span></div><div class="workout-summary-stat"><strong id="summarySets">0</strong><span>SÉRIES</span></div><div class="workout-summary-stat"><strong id="summaryDuration">0 min</strong><span>DURÉE</span></div></div><div id="summaryDetails" class="workout-summary-sets"></div><button class="workout-summary-close" onclick="closeWorkoutSummary()">Retour au programme</button></section></div>'''
+              s=s.replace('</body>',html+'</body>',1)
+          marker='function showWorkoutSummary()'
+          if marker not in s:
+              fn='''function showWorkoutSummary(){const st=workoutState;if(!st)return;const values=st.values||{};let sets=0,details=[];Object.keys(values).forEach(k=>{const rows=values[k]||[];rows.forEach((v,i)=>{if(v&&v.done)sets++;if(v&&(v.load!==''||v.reps!==''))details.push((i+1)+': '+(v.load||'—')+' kg × '+(v.reps||'—'))})});const mins=Math.max(1,Math.round(((Date.now()-(st.startedAt||Date.now()))/60000)));document.getElementById('summaryExercises').textContent=st.session.items.length;document.getElementById('summarySets').textContent=sets;document.getElementById('summaryDuration').textContent=mins+' min';document.getElementById('workoutSummaryName').textContent=st.session.name||'Séance';document.getElementById('summaryDetails').textContent=details.length?details.join('  ·  '):'Séance validée';document.getElementById('workoutSummaryOverlay').hidden=false;document.getElementById('workoutOverlay').hidden=true;document.body.style.overflow='hidden'}function closeWorkoutSummary(){document.getElementById('workoutSummaryOverlay').hidden=true;workoutState=null;document.body.style.overflow='';hideProgram()}'''
+              s=s.replace('function finishWorkout()',fn+'\nfunction finishWorkout()',1)
+          s=s.replace('workoutState={session:s,exerciseIndex:0,values:{}};','workoutState={session:s,exerciseIndex:0,values:{},startedAt:Date.now()};',1)
+          s=s.replace("alert('Séance terminée 💪')","showWorkoutSummary()",1)
+          if s==original: raise SystemExit('NO_CHANGES')
+          p.write_text(s)
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name 'hscoaching'
+          git config user.email 'hsport78100@gmail.com'
+          git add programmes.html
+          git commit -m 'Add workout completion summary' || exit 0
+          git push
