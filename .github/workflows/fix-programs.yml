@@ -17,17 +17,20 @@ jobs:
           s=p.read_text()
           old="const delta=first?Math.round(((last-first)/first)*100):0; const previous=rows.length>1?rows[rows.length-2].load:null; const vsPrevious=previous!==null?last-previous:null; const vsPrevious=previous!==null?last-previous:null; const vsPrevious=previous!==null?last-previous:null; const previous=rows.length>1?rows[rows.length-2].load:null;"
           new="const delta=first?Math.round(((last-first)/first)*100):0; const previous=rows.length>1?rows[rows.length-2].load:null; const vsPrevious=previous!==null?last-previous:null;"
-          if old not in s: raise SystemExit('duplicate evolution segment not found')
-          s=s.replace(old,new,1)
+          if old in s: s=s.replace(old,new,1)
           old2="</strong></div></div>'<select class=\"history-select\""
           new2="</strong></div></div>'+'<select class=\"history-select\""
-          if old2 not in s: raise SystemExit('missing select concatenation not found')
-          s=s.replace(old2,new2,1)
+          if old2 in s: s=s.replace(old2,new2,1)
+          summary="""function showWorkoutSummary(){const st=workoutState;if(!st)return;const h=readWorkoutHistory(),last=h[0]||{};const ex=(last.exercises||[]).filter(e=>(e.sets||[]).length);document.getElementById('workoutSummaryName').textContent=(last.program_name||activeProgram?.name||'Programme')+' · '+(last.session_name||st.session.name||'Séance');document.getElementById('summaryExercises').textContent=String(ex.length);document.getElementById('summarySets').textContent=String(ex.reduce((n,e)=>n+(e.sets||[]).length,0));document.getElementById('summaryDuration').textContent=String(last.duration_minutes||Math.max(1,Math.round((Date.now()-(st.startedAt||Date.now()))/60000)))+' min';document.getElementById('summaryDetails').innerHTML=ex.slice(0,6).map(e=>'<strong>'+esc(e.name)+'</strong> · '+e.sets.map(x=>esc((x.load||'—')+' kg × '+(x.reps||'—'))).join(' · ')).join('<br>')||'Séance enregistrée.';document.getElementById('workoutSummaryOverlay').hidden=false;document.body.style.overflow='hidden'}function closeWorkoutSummary(){document.getElementById('workoutSummaryOverlay').hidden=true;workoutState=null;document.body.style.overflow='hidden'}"""
+          marker='function finishWorkout(){'
+          if 'function showWorkoutSummary()' not in s:
+              if marker not in s: raise SystemExit('finishWorkout marker not found')
+              s=s.replace(marker,summary+marker,1)
           p.write_text(s)
       - name: Commit fix
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add programmes.html
-          git commit -m 'Fix programs loading JavaScript' || exit 0
+          git commit -m 'Fix workout completion summary' || exit 0
           git push origin HEAD:${{ github.event.pull_request.base.ref }}
