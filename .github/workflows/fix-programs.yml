@@ -1,6 +1,6 @@
 name: Fix programs JS
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize]
 permissions:
   contents: write
