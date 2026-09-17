@@ -24,10 +24,20 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
 .stat{background:#101010;border:1px solid #292929;border-radius:10px;padding:10px}
 .stat span{display:block;color:#666;font-size:8px;text-transform:uppercase}
 .stat strong{display:block;margin-top:4px;font-size:12px}
-.chart{height:110px;display:flex;align-items:flex-end;gap:6px;margin-top:16px;padding:8px 2px 0;border-bottom:1px solid #292929}
-.bar{flex:1;min-width:8px;background:#555;border-radius:4px 4px 0 0;position:relative}
-.bar:last-child{background:#fff}
-.bar span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:7px;color:#777;white-space:nowrap;margin-bottom:4px}
+.chart-wrap{margin-top:16px}
+.chart-title{font-size:10px;font-weight:900;margin-bottom:4px}
+.chart-help{font-size:8px;color:#666;margin-bottom:10px}
+.line-chart{position:relative;height:170px;background:#101010;border:1px solid #292929;border-radius:11px;padding:10px}
+.line-chart svg{display:block;width:100%;height:115px;overflow:visible}
+.line-grid{stroke:#292929;stroke-width:1}
+.line-path{fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.line-point{fill:#fff;stroke:#0b0b0b;stroke-width:2}
+.chart-labels{display:flex;justify-content:space-between;gap:6px;margin-top:7px}
+.chart-label{font-size:7px;color:#666;text-align:center;flex:1;min-width:0}
+.chart-axis{display:flex;justify-content:space-between;font-size:7px;color:#666;margin-bottom:3px}
+.chart-axis strong{color:#aaa}
+.chart-explain{font-size:9px;color:#aaa;line-height:1.45;margin-top:10px}
+.chart-explain strong{color:#fff}
 .history-row{padding:12px;border:1px solid #252525;border-radius:11px;background:#101010;margin-top:7px;cursor:pointer}
 .history-row strong{font-size:11px}
 .history-row div{font-size:9px;color:#777;margin-top:4px}
@@ -170,6 +180,45 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
     detail.setAttribute('aria-hidden','true');
   };
 
+  function buildChart(rows){
+    if(!rows.length) return '';
+    const width = 480;
+    const height = 115;
+    const padX = 18;
+    const padY = 12;
+    const values = rows.map(function(row){ return row.load; });
+    const min = Math.min.apply(null,values);
+    const maxValue = Math.max.apply(null,values);
+    const range = Math.max(1,maxValue-min);
+    const points = rows.map(function(row,index){
+      const x = rows.length===1 ? width/2 : padX + index*(width-padX*2)/(rows.length-1);
+      const y = height-padY - ((row.load-min)/range)*(height-padY*2);
+      return {x:x,y:y,load:row.load,date:row.date};
+    });
+    const path = points.map(function(p,index){
+      return (index ? 'L' : 'M')+p.x.toFixed(1)+' '+p.y.toFixed(1);
+    }).join(' ');
+    const circles = points.map(function(p){
+      return '<circle class="line-point" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4"></circle>';
+    }).join('');
+    const labels = rows.map(function(row){
+      const d = new Date(row.date);
+      const label = isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+      return '<div class="chart-label">'+label+'</div>';
+    }).join('');
+    return '<div class="line-chart">'+
+      '<div class="chart-axis"><span>'+min+' kg</span><strong>'+maxValue+' kg</strong></div>'+
+      '<svg viewBox="0 0 '+width+' '+height+'" preserveAspectRatio="none" aria-label="Évolution de la charge">'+
+        '<line class="line-grid" x1="'+padX+'" y1="'+padY+'" x2="'+(width-padX)+'" y2="'+padY+'"></line>'+
+        '<line class="line-grid" x1="'+padX+'" y1="'+(height/2)+'" x2="'+(width-padX)+'" y2="'+(height/2)+'"></line>'+
+        '<line class="line-grid" x1="'+padX+'" y1="'+(height-padY)+'" x2="'+(width-padX)+'" y2="'+(height-padY)+'"></line>'+
+        '<path class="line-path" d="'+path+'"></path>'+
+        circles+
+      '</svg>'+
+      '<div class="chart-labels">'+labels+'</div>'+
+    '</div>';
+  }
+
   function render(){
     const program = getProgram();
     document.getElementById('programName').textContent =
@@ -272,11 +321,17 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
             (progression > 0 ? '+' : '')+progression+'%</strong></div>'+
           '<div class="stat"><span>Première charge</span><strong>'+first+' kg</strong></div>'+
         '</div>'+
-        '<div class="chart">'+
-          rows.map(function(row){
-            return '<div class="bar" style="height:'+Math.max(8,Math.round(row.load/max*82))+
-              'px"><span>'+row.load+' kg</span></div>';
-          }).join('')+
+        '<div class="chart-wrap">'+
+          '<div class="chart-title">Ta charge au fil des séances</div>'+
+          '<div class="chart-help">Chaque point représente une séance.</div>'+
+          buildChart(rows)+
+          '<div class="chart-explain"><strong>'+last+' kg actuellement</strong> · '+
+            (progression > 0
+              ? 'tu as augmenté ta charge de '+progression+' % depuis le début.'
+              : progression < 0
+                ? 'ta charge actuelle est '+Math.abs(progression)+' % plus basse qu’au début.'
+                : 'ta charge est stable depuis le début.')+
+          '</div>'+
         '</div>'+
       '</section>'+
       '<section class="card">'+
