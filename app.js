@@ -25,10 +25,100 @@ function frOverride(e){const key=String(e.name_en||e.name||'').toLowerCase();ret
 function translatedExercise(e){const fr=frOverride(e);return {name:fr?.name||autoFrName(e.name_fr||e.name_en),description:fr?.description||autoFrText(e.description_fr||e.description_en||'Exercice de renforcement musculaire.'),instructions:fr?.instructions||(e.instructions_fr||e.instructions_en||[]).map(autoFrText),tips:fr?.tips||(e.tips_fr||e.tips_en||[]).map(autoFrText)}}
 function mediaHtml(e,modalView=false){const imgs=e.images||{};const flat=imgs.flat||{};const a=imageUrl(flat.start||flat.main);const b=imageUrl(flat.peak);if(!a)return '';if(b)return `<div class="media-frame media-pair ${modalView?'modal-media':''}"><img class="media-a" src="${a}" alt="Position de départ — ${e.name}" loading="lazy"><img class="media-b" src="${b}" alt="Position finale — ${e.name}" loading="lazy"></div>`;return `<div class="media-frame ${modalView?'modal-media':''}"><img src="${a}" alt="Illustration — ${e.name}" loading="lazy"></div>`}
 function renderCategories(){const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos','full','cardio','mobilite'];categoriesEl.innerHTML=wanted.map(c=>`<button class="chip ${category===c?'active':''}" data-category="${c}">${categoryNames[c]}</button>`).join('');categoriesEl.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{category=b.dataset.category;renderCategories();render()})}
-function render(){const q=search.value.trim().toLowerCase();const list=exercises.filter(e=>{const hay=[e.name,e.name_en,e.description,...(e.muscles||[]),e.equipmentLabel,e.bodyPartLabel,...(e.tags||[])].join(' ').toLowerCase();return (category==='all'||categoryFor(e)===category)&&(!q||hay.includes(q))});grid.innerHTML=list.map(e=>`<article class="card card-media" data-id="${e.id}">${mediaHtml(e)}<span class="tag">${categoryLabel(e)}</span><h3>${e.name}</h3><p>${(e.muscles||[]).slice(0,3).map(labelMuscle).join(' · ')}</p></article>`).join('');count.textContent=`${list.length} exercice${list.length>1?'s':''}`;empty.hidden=list.length>0;grid.querySelectorAll('.card').forEach(c=>c.onclick=()=>openExercise(c.dataset.id))}
-function exerciseUrl(e){const url=new URL(window.location.href);url.search='';url.hash='';url.searchParams.set('exercice',e.id);return url.toString()}
-function openExercise(id,updateUrl=true){const e=exercises.find(x=>String(x.id)===String(id));if(!e)return;const savedY=window.scrollY||window.pageYOffset||0;if(updateUrl)history.pushState({exercice:e.id},'',exerciseUrl(e));const instructions=e.instructions||[];const tips=e.tips||[];modalContent.innerHTML=`<div class="modal"><span class="modal-tag">${categoryLabel(e)}${e.equipmentLabel?' · '+e.equipmentLabel:''}</span><h2>${e.name}</h2>${mediaHtml(e,true)}<div class="modal-muscles">${(e.muscles||[]).map(m=>`<span class="modal-muscle">${labelMuscle(m)}</span>`).join('')}</div><p>${e.description||'Exercice de renforcement musculaire.'}</p>${instructions.length?`<h3>Exécution</h3><ol>${instructions.map(t=>`<li>${t}</li>`).join('')}</ol>`:''}${tips.length?`<h3>Conseils techniques</h3><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}<div class="modal-errors"><h3>À retenir</h3><ul><li>Contrôle l'amplitude et la vitesse du mouvement.</li><li>Garde une technique propre avant d'augmenter la charge.</li><li>Adapte l'exercice à ton niveau et à ton matériel.</li></ul></div><div class="qr-section"><h3>QR code de cet exercice</h3><p>Scanne ce QR code pour ouvrir directement cette fiche.</p><div id="qrcode" class="qr-code"></div><div class="qr-url"><input id="exercise-link" value="${exerciseUrl(e)}" readonly><button class="qr-copy" id="copy-link">Copier le lien</button></div></div></div>`;modal.showModal();requestAnimationFrame(()=>{window.scrollTo(0,savedY);setTimeout(()=>window.scrollTo(0,savedY),80)});generateQR(e)}
-function generateQR(e){const box=document.querySelector('#qrcode');if(!box||typeof QRCode==='undefined')return;box.innerHTML='';new QRCode(box,{text:exerciseUrl(e),width:220,height:220,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});const button=document.querySelector('#copy-link');button.onclick=async()=>{try{await navigator.clipboard.writeText(exerciseUrl(e));button.textContent='Lien copié ✓';setTimeout(()=>button.textContent='Copier le lien',1800)}catch{button.textContent='Copie impossible'}}}
-function openFromUrl(){const id=new URLSearchParams(window.location.search).get('exercice');if(id)openExercise(id,false)}
-async function loadLibrary(){grid.innerHTML='<p class="empty">Chargement de la bibliothèque…</p>';try{const res=await fetch(DATA_URL,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json();exercises=(data.exercises||[]).map(e=>{const cat=categoryFor(e);const tr=translatedExercise(e);return {...e,id:e.id||slugify(e.name_en),name:tr.name,description:tr.description,instructions:tr.instructions,tips:tr.tips,muscles:[...(e.primary_muscles||[]),...(e.secondary_muscles||[])],equipmentLabel:String(e.equipment||'Poids du corps').replace(/_/g,' '),bodyPartLabel:cat}});renderCategories();render();openFromUrl()}catch(err){console.error(err);grid.innerHTML='<p class="empty">Impossible de charger la bibliothèque. Recharge la page.</p>';count.textContent=''}}
-search.oninput=render;document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});loadLibrary();
+const PAGE_SIZE=48;
+let visibleLimit=PAGE_SIZE;
+let filteredExercises=[];
+const CACHE_KEY='hs_library_cache_v2';
+const CACHE_TTL=24*60*60*1000;
+
+function getCachedLibrary(){
+  try{
+    const raw=localStorage.getItem(CACHE_KEY);
+    if(!raw)return null;
+    const data=JSON.parse(raw);
+    if(!data||!Array.isArray(data.exercises))return null;
+    return data;
+  }catch{return null}
+}
+function setCachedLibrary(exercises){
+  try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),exercises}))}catch{}
+}
+function filteredList(){
+  const q=search.value.trim().toLowerCase();
+  return exercises.filter(e=>{
+    const hay=[e.name,e.name_en,e.description,...(e.muscles||[]),e.equipmentLabel,e.bodyPartLabel,...(e.tags||[])].join(' ').toLowerCase();
+    return (category==='all'||categoryFor(e)===category)&&(!q||hay.includes(q));
+  });
+}
+function ensureLoadMore(){
+  let b=document.getElementById('load-more-exercises');
+  if(!b){
+    b=document.createElement('button');
+    b.id='load-more-exercises';
+    b.type='button';
+    b.style.cssText='display:none;width:100%;margin:18px 0 30px;padding:13px 16px;border:1px solid #333;border-radius:12px;background:#151515;color:#fff;font-size:11px;font-weight:900;cursor:pointer';
+    grid.parentElement.appendChild(b);
+    b.addEventListener('click',()=>{visibleLimit+=PAGE_SIZE;render()});
+  }
+  return b;
+}
+function render(){
+  filteredExercises=filteredList();
+  const list=filteredExercises.slice(0,visibleLimit);
+  grid.innerHTML=list.map(e=>`<article class="card card-media" data-id="${e.id}">${mediaHtml(e)}<span class="tag">${categoryLabel(e)}</span><h3>${e.name}</h3><p>${(e.muscles||[]).slice(0,3).map(labelMuscle).join(' · ')}</p></article>`).join('');
+  count.textContent=`${filteredExercises.length} exercice${filteredExercises.length>1?'s':''}`;
+  empty.hidden=filteredExercises.length>0;
+  grid.querySelectorAll('.card').forEach(c=>c.onclick=()=>openExercise(c.dataset.id));
+  const b=ensureLoadMore();
+  const remaining=Math.max(0,filteredExercises.length-list.length);
+  b.style.display=remaining?'block':'none';
+  b.textContent=remaining?`Afficher ${Math.min(PAGE_SIZE,remaining)} autres exercices`:'';
+}
+function normalizeExercises(list){
+  return (list||[]).map(e=>{
+    const cat=categoryFor(e);
+    const tr=translatedExercise(e);
+    return {...e,id:e.id||slugify(e.name_en||e.name),name:tr.name,description:tr.description,instructions:tr.instructions,tips:tr.tips,muscles:[...(e.primary_muscles||[]),...(e.secondary_muscles||[])],equipmentLabel:String(e.equipment||'Poids du corps').replace(/_/g,' '),bodyPartLabel:cat};
+  });
+}
+async function loadLibrary(){
+  grid.innerHTML='<p class="empty">Chargement de la bibliothèque…</p>';
+  try{
+    const cached=getCachedLibrary();
+    if(cached&&cached.exercises.length){
+      exercises=normalizeExercises(cached.exercises);
+      renderCategories();render();openFromUrl();
+      if(Date.now()-(cached.savedAt||0)>CACHE_TTL)refreshLibrary();
+      return;
+    }
+    await refreshLibrary(true);
+  }catch(err){
+    console.error(err);
+    const cached=getCachedLibrary();
+    if(cached&&cached.exercises.length){
+      exercises=normalizeExercises(cached.exercises);
+      renderCategories();render();openFromUrl();
+    }else{
+      grid.innerHTML='<p class="empty">Impossible de charger la bibliothèque. Recharge la page.</p>';
+      count.textContent='';
+    }
+  }
+}
+async function refreshLibrary(initial=false){
+  try{
+    const res=await fetch(DATA_URL,{cache:'force-cache'});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    const raw=Array.isArray(data.exercises)?data.exercises:[];
+    if(!raw.length)throw new Error('Bibliothèque vide');
+    setCachedLibrary(raw);
+    exercises=normalizeExercises(raw);
+    visibleLimit=PAGE_SIZE;
+    renderCategories();render();
+    if(initial)openFromUrl();
+  }catch(err){
+    if(initial)throw err;
+    console.warn('HS Coaching: actualisation différée impossible',err);
+  }
+}
+let searchTimer;search.oninput=()=>{clearTimeout(searchTimer);visibleLimit=PAGE_SIZE;searchTimer=setTimeout(render,120)};document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});loadLibrary();
