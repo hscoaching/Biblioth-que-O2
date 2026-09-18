@@ -62,6 +62,7 @@ function addExercise(id){const e=exercises.find(x=>String(x.id)===String(id));if
 document.getElementById('pickerSearch').addEventListener('input',renderPicker);
 function saveProgram(){editing.name=document.getElementById('programName').value.trim()||'Mon programme';editing.objective=document.getElementById('programObjective').value.trim();editing.description=document.getElementById('programDescription').value.trim();editing.updatedAt=new Date().toISOString();const idx=programs.findIndex(p=>p.id===editing.id);if(idx>=0)programs[idx]=editing;else programs.unshift(editing);persist();closeEditor()}
 function startCustom(i,si=0){const p=structuredClone(programs[i]);p.selectedSession=si;localStorage.setItem('hs_custom_active_program',JSON.stringify(p));window.location.href='seance.html?custom=1'}
+programs=loadLocal();
 renderList();
 </script>
 </body></html>
