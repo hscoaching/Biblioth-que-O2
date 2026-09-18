@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
 .wrap{max-width:560px;margin:auto;padding:22px 18px}
-.head{margin-bottom:16px}
+.head{margin-bottom:16px;position:relative}.back-top{display:inline-block;margin-bottom:12px;color:#fff;text-decoration:none;font-size:10px;font-weight:900;border:1px solid #333;border-radius:9px;padding:8px 10px;background:#151515}
 .k{font-size:9px;letter-spacing:1.6px;color:#666;font-weight:900}
 .head h1{font-size:25px;margin:4px 0}
 .program-name{font-size:11px;color:#999}
@@ -58,6 +58,7 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
 <body>
 <main class="wrap">
 <header class="head">
+<a id="backTop" class="back-top" href="programmes.html">← Retour</a>
 <div class="k">SUIVI PERSONNEL</div>
 <h1>Ma progression</h1>
 <div id="programName" class="program-name"></div>
@@ -86,6 +87,9 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
   const KEY = 'hs_workout_history_v1';
   const app = document.getElementById('app');
   const detail = document.getElementById('detail');
+  const backTop = document.getElementById('backTop');
+  const query = new URLSearchParams(window.location.search);
+  backTop.href = query.get('program_id') ? 'programmes.html' : 'mes-programmes.html';
 
   function esc(value){
     return String(value == null ? '' : value)
