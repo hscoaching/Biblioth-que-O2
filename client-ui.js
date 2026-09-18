@@ -22,7 +22,7 @@
   nav.forEach(([href,label,ico])=>{
     const a=document.createElement('a');a.href=href;a.className=path===href?'active':'';
     a.innerHTML='<span class="ico">'+ico+'</span>'+label;
-    if(href==='mon-coach.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
+    if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
   });
   const first=document.body.firstElementChild;
@@ -53,7 +53,7 @@
       const badge=navEl.querySelector('.hs-client-badge');
       if(badge&&data.length){badge.hidden=false;badge.textContent=data.length>9?'9+':String(data.length)}
       const latest=data[0];
-      if(latest&&!path.includes('mon-coach'))addAlert(latest.title||'Nouveau message',latest.body||'Une nouveauté est disponible.',latest.type==='program'?'mes-programmes.html':'mon-coach.html');
+      if(latest&&!path.includes('compte.html'))addAlert(latest.title||'Nouveau message',latest.body||'Une nouveauté est disponible.',latest.type==='program'?'mes-programmes.html':'mon-coach.html');
       if(path==='mon-coach.html'&&data.length){await sb.from('client_notifications').update({read_at:new Date().toISOString()}).in('id',data.map(x=>x.id))}
     }catch(e){console.warn('HS notifications',e)}
   }
