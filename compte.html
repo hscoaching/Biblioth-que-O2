@@ -66,7 +66,7 @@ function enterTestMode(){
   const history=readLocal(STORE_HISTORY);if(!history.some(h=>h.local_id==='test_workout_1'))history.push({local_id:'test_workout_1',program_name:'Programme test — Client',session_name:'Séance 1',date:new Date(Date.now()-86400000).toISOString(),duration:52,exercises:[{name:'Développé couché',sets:[{weight:80,reps:10},{weight:80,reps:9},{weight:77.5,reps:10}]},{name:'Tirage vertical',sets:[{weight:65,reps:12},{weight:65,reps:11},{weight:60,reps:12}]}]});saveLocal(STORE_HISTORY,history);
   render();
 }
-function exitTestMode(){localStorage.removeItem('hs_test_client_mode');location.reload()}
+function simulateTestProgram(){const programs=readLocal(STORE_PROGRAMS);if(!programs.some(p=>p.local_id==='test_program_2')){programs.unshift({local_id:'test_program_2',name:'Programme test — Nouveau',description:'Programme envoyé par Hugo pour la démonstration',days:[{name:'Séance 1',exercises:[{name:'Développé incliné',sets:4,reps:'8-10'},{name:'Rowing poulie',sets:4,reps:'8-10'}]}]});saveLocal(STORE_PROGRAMS,programs)}localStorage.setItem('hs_test_notification_v1',JSON.stringify({title:'Nouveau programme reçu',body:'Ton coach vient de t’envoyer un nouveau programme.'}));render();if(window.HSClientRefreshNotifications)window.HSClientRefreshNotifications()}\nfunction exitTestMode(){localStorage.removeItem('hs_test_client_mode');localStorage.removeItem('hs_test_notification_v1');location.reload()}
 function showLogin(){['signupBox','resetBox'].forEach(id=>$(id).classList.add('hidden'));$('loginBox').classList.remove('hidden');clearMsg()}
 function showSignup(){['loginBox','resetBox'].forEach(id=>$(id).classList.add('hidden'));$('signupBox').classList.remove('hidden');clearMsg()}
 function showReset(){['loginBox','signupBox'].forEach(id=>$(id).classList.add('hidden'));$('resetBox').classList.remove('hidden');clearMsg()}
@@ -153,7 +153,8 @@ async function render(){
     $('accountName').textContent='Client Test 🧪';$('accountEmail').textContent='Mode démonstration — aucun compte réel';
     const p=readLocal(STORE_PROGRAMS),h=readLocal(STORE_HISTORY);$('programCount').textContent=p.length;$('historyCount').textContent=h.length;setSync('🧪 Mode test client actif');
     const note=document.querySelector('#accountCard .note');if(note)note.innerHTML='Tu es dans un environnement de démonstration. Les données de test restent uniquement sur cet appareil.';
-    let testBtn=document.getElementById('exitTestBtn');if(!testBtn){testBtn=document.createElement('button');testBtn.id='exitTestBtn';testBtn.className='btn';testBtn.textContent='Quitter le mode test';testBtn.onclick=exitTestMode;$('accountCard').appendChild(testBtn)}
+    let testProgramBtn=document.getElementById('testProgramBtn');if(!testProgramBtn){testProgramBtn=document.createElement('button');testProgramBtn.id='testProgramBtn';testProgramBtn.className='btn primary';testProgramBtn.textContent='🧪 Simuler un programme reçu';testProgramBtn.onclick=simulateTestProgram;$('accountCard').appendChild(testProgramBtn)}
+let testBtn=document.getElementById('exitTestBtn');if(!testBtn){testBtn=document.createElement('button');testBtn.id='exitTestBtn';testBtn.className='btn';testBtn.textContent='Quitter le mode test';testBtn.onclick=exitTestMode;$('accountCard').appendChild(testBtn)}
     return;
   }
   const {data}=await client.auth.getSession();const session=data.session;
