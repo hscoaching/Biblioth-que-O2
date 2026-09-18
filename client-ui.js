@@ -27,10 +27,9 @@
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
   });
-  // Navigation principale unique de la bibliothèque.
-  // On l'insère dans le body, avant le contenu, pour qu'elle soit toujours visible.
+  // Navigation principale unique : toujours hors du header pour rester visible sur toutes les pages.
   const topbar=document.querySelector('.topbar');
-  if(topbar){ topbar.appendChild(navEl); }
+  if(topbar){ topbar.insertAdjacentElement('afterend',navEl); }
   else { document.body.insertBefore(navEl, document.body.firstChild); }
 
   function addAlert(title,body,href){
