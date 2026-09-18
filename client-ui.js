@@ -19,7 +19,7 @@
 `;
   document.head.appendChild(style);
   // Supprime toute ancienne navigation pour éviter les doublons.
-  document.querySelectorAll('.hs-client-nav').forEach(el=>el.remove());
+  document.querySelectorAll('.hs-client-nav, .nav').forEach(el=>el.remove());
   const navEl=document.createElement('nav');navEl.className='hs-client-nav';navEl.setAttribute('aria-label','Navigation principale');
   nav.forEach(([href,label])=>{
     const a=document.createElement('a');a.href=href;a.className='';
