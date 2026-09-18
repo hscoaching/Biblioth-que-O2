@@ -93,10 +93,13 @@ async function syncPrograms(user){
 
 async function syncHistory(user){
   let local=readLocal(STORE_HISTORY);
+  const programs=readLocal(STORE_PROGRAMS);
   for(const h of local){
     if(!h.local_id)h.local_id=localId('workout');
     if(h.cloud_id)continue;
-    const payload={user_id:user.id,program_id:h.program_id||null,program_name:h.program||h.program_name||null,session_id:h.session_id||null,session_name:h.session_name||h.session||null,workout_date:h.date||h.workout_date||new Date().toISOString(),duration_minutes:h.duration||h.duration_minutes||null,data:h};
+    const sourceId=h.program_id||h.source_program_id||null;
+    const linked=programs.find(p=>p.cloud_id&&(String(p.source_program_id||p.program_id||'')===String(sourceId))||p.cloud_id&&String(p.name||'')===String(h.program_name||h.program||''));
+    const payload={user_id:user.id,program_id:linked?.cloud_id||null,program_name:h.program||h.program_name||null,session_id:h.session_id||null,session_name:h.session_name||h.session||null,workout_date:h.date||h.workout_date||new Date().toISOString(),duration_minutes:h.duration||h.duration_minutes||null,data:h};
     const {data,error}=await client.from('client_workouts').insert(payload).select('id').single();
     if(!error&&data)h.cloud_id=data.id;
     else if(error)console.warn('workout insert',error);
