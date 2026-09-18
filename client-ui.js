@@ -27,8 +27,11 @@
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
   });
-  // Navigation principale affichée uniquement sur la page d'accueil de la bibliothèque.
-  // Les autres pages gardent leur propre en-tête.
+  // Navigation principale unique de la bibliothèque.
+  // On l'insère dans le body, avant le contenu, pour qu'elle soit toujours visible.
+  const topbar=document.querySelector('.topbar');
+  if(topbar){ topbar.appendChild(navEl); }
+  else { document.body.insertBefore(navEl, document.body.firstChild); }
 
   function addAlert(title,body,href){
     if(document.querySelector('.hs-client-alert'))return;
