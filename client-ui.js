@@ -22,7 +22,7 @@
   document.querySelectorAll('.hs-client-nav').forEach(el=>el.remove());
   const navEl=document.createElement('nav');navEl.className='hs-client-nav';navEl.setAttribute('aria-label','Navigation principale');
   nav.forEach(([href,label])=>{
-    const a=document.createElement('a');a.href=href;a.className=path===href?'active':'';
+    const a=document.createElement('a');a.href=href;a.className='';
     a.textContent=label;
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
