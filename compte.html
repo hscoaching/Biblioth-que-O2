@@ -22,7 +22,7 @@
 <div class="switch">Pas encore de compte ? <button onclick="showSignup()">Créer mon compte</button></div>
 <div class="switch"><button onclick="showReset()">Mot de passe oublié ?</button></div>
 <div style="margin-top:18px;padding-top:15px;border-top:1px solid #292929;text-align:center">
-<button class="btn" onclick="enterTestMode()">🧪 Entrer en mode test client</button>
+<button id="enterTestBtn" class="btn" type="button">🧪 Entrer en mode test client</button>
 <div style="color:#666;font-size:9px;line-height:1.4;margin-top:7px">Mode démonstration local : aucun vrai compte ni email nécessaire.</div>
 </div>
 </div>
@@ -166,8 +166,7 @@ let testBtn=document.getElementById('exitTestBtn');if(!testBtn){testBtn=document
   $('programCount').textContent=localPrograms.length;$('historyCount').textContent=localHistory.length;
   await syncLocal(user);
 }
-client.auth.onAuthStateChange(()=>{render()});
-render();
+document.addEventListener('DOMContentLoaded',()=>{const b=$('enterTestBtn');if(b)b.addEventListener('click',enterTestMode);render()},{once:true});
 </script>
 <script>window.HS_SUPABASE_CONFIG={url:"https://hcjoagpkgpqxgzjdyfvd.supabase.co",key:"sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB"};</script><script src="client-ui.js"></script></body>
 </html>
