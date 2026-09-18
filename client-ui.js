@@ -9,13 +9,13 @@
   ];
   const style=document.createElement('style');
   style.textContent=`
-.hs-client-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:4px;padding:7px;margin:-8px 0 18px;background:rgba(11,11,11,.94);backdrop-filter:blur(14px);border:1px solid #252525;border-radius:14px;box-shadow:0 8px 30px #0005}
-.hs-client-nav a{position:relative;flex:1;color:#777;text-decoration:none;text-align:center;padding:9px 7px;border-radius:9px;font-size:10px;font-weight:900;white-space:nowrap}
-.hs-client-nav a.active{background:#fff;color:#000}
+.hs-client-nav{position:static;z-index:100;display:flex;align-items:center;gap:4px;padding:4px;margin:0 12px 0 auto;background:rgba(11,11,11,.94);backdrop-filter:blur(14px);border:1px solid #252525;border-radius:10px;box-shadow:0 8px 30px #0005;width:max-content;max-width:calc(100% - 12px)}
+.hs-client-nav a{position:relative;flex:0 0 auto;color:#777;text-decoration:none;text-align:center;padding:7px 10px;border-radius:7px;font-size:10px;font-weight:900;white-space:nowrap}
+
 .hs-client-badge{position:absolute;top:3px;right:18%;min-width:15px;height:15px;padding:0 4px;border-radius:99px;background:#fff;color:#000;border:2px solid #111;font-size:8px;line-height:11px}
 .hs-client-alert{margin:0 0 12px;padding:11px 13px;border:1px solid #333;border-radius:12px;background:#141414;color:#fff;font-size:10px;line-height:1.45}
 .hs-client-alert strong{display:block;font-size:11px;margin-bottom:3px}
-@media(max-width:520px){.hs-client-nav{margin:-8px 0 14px}.hs-client-nav a{padding:9px 3px;font-size:10px}.hs-client-badge{right:12%}}
+@media(max-width:650px){.hs-client-nav{margin:0 8px 0 auto;gap:3px;padding:3px}.hs-client-nav a{padding:7px 6px;font-size:9px}.hs-client-badge{right:8%}}
 `;
   document.head.appendChild(style);
   // Supprime toute ancienne navigation pour éviter les doublons.
@@ -27,9 +27,9 @@
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
   });
-  // Navigation principale unique : toujours hors du header pour rester visible sur toutes les pages.
+  // Navigation compacte en haut à droite, comme le menu d'origine.
   const topbar=document.querySelector('.topbar');
-  if(topbar){ topbar.insertAdjacentElement('afterend',navEl); }
+  if(topbar){ topbar.appendChild(navEl); }
   else { document.body.insertBefore(navEl, document.body.firstChild); }
 
   function addAlert(title,body,href){
