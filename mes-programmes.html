@@ -17,9 +17,9 @@ body{background:#0b0b0b;color:#fff}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand"><span class="brand-mark">HS</span><div><strong>HS COACHING</strong><small>Bibliothèque O2</small></div></div><nav class="nav"><a href="index.html">Exercices</a><a href="programmes.html">Programmes</a><a class="active" href="mes-programmes.html">Mes programmes</a><a href="compte.html">Compte</a></nav></header>
+<header class="topbar"><div class="brand"><span class="brand-mark">HS</span><div><strong>HS COACHING</strong><small>Bibliothèque O2</small></div></div><nav class="nav"><a href="index.html">Accueil</a><a class="active" href="mes-programmes.html">Programmes</a><a href="compte.html">Mon compte</a></nav></header>
 <main class="container">
-<section class="hero" id="listView"><h1>Mes programmes.</h1><p>Retrouve tes programmes, lance une séance ou crée ton propre programme.</p><div class="toolbar"><button class="btn primary" onclick="newProgram()">+ Créer un programme</button><button class="btn" onclick="loadCoachPrograms()">+ Programme HS Coaching</button><a class="btn" href="index.html">← Bibliothèque</a></div>
+<section class="hero" id="listView"><h1>Programmes.</h1><p>Retrouve tes programmes, lance une séance ou crée ton propre programme.</p><div class="toolbar"><button class="btn primary" onclick="newProgram()">+ Créer un programme</button><button class="btn" onclick="loadCoachPrograms()">+ Programme HS Coaching</button></div>
 <div id="quickStats" class="quick-stats"></div><div id="programList" class="program-list"></div><div id="coachPrograms" class="program-list" style="margin-top:18px"></div></section>
 <section id="editor" class="editor">
 <div class="editor-head"><div><p class="eyebrow">CRÉATION</p><h2 id="editorTitle">Nouveau programme</h2></div><button class="btn" onclick="closeEditor()">× Fermer</button></div>
