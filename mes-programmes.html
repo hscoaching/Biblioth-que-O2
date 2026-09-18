@@ -19,7 +19,7 @@ body{background:#0b0b0b;color:#fff}
 <body>
 <header class="topbar"><div class="brand"><span class="brand-mark">HS</span><div><strong>HS COACHING</strong><small>Bibliothèque O2</small></div></div><nav class="nav"><a href="index.html">Exercices</a><a href="programmes.html">Programmes</a><a class="active" href="mes-programmes.html">Mes programmes</a><a href="compte.html">Compte</a></nav></header>
 <main class="container">
-<section class="hero" id="listView"><p class="eyebrow">MES PROGRAMMES</p><h1>Construis<br><span>ton programme.</span></h1><p>Crée tes propres séances à partir des fiches de la Bibliothèque O2. Tes programmes sont enregistrés sur cet appareil, sans compte.</p><div class="toolbar"><button class="btn primary" onclick="newProgram()">+ Créer un programme</button><button class="btn" onclick="loadCoachPrograms()">+ Partir d’un programme HS</button><a class="btn" href="index.html">← Bibliothèque</a></div>
+<section class="hero" id="listView"><p class="eyebrow">MES PROGRAMMES</p><h1>Construis<br><span>ton programme.</span></h1><p>Crée tes propres séances à partir des fiches de la Bibliothèque O2. Tes programmes personnels sont associés à ton compte quand tu es connecté, pour les retrouver sur tous tes appareils.</p><div class="toolbar"><button class="btn primary" onclick="newProgram()">+ Créer un programme</button><button class="btn" onclick="loadCoachPrograms()">+ Partir d’un programme HS</button><a class="btn" href="index.html">← Bibliothèque</a></div>
 <div id="quickStats" class="quick-stats"></div><div id="programList" class="program-list"></div><div id="coachPrograms" class="program-list" style="margin-top:18px"></div></section>
 <section id="editor" class="editor">
 <div class="editor-head"><div><p class="eyebrow">CRÉATION</p><h2 id="editorTitle">Nouveau programme</h2></div><button class="btn" onclick="closeEditor()">× Fermer</button></div>
@@ -31,13 +31,47 @@ body{background:#0b0b0b;color:#fff}
 </section>
 </main>
 <div id="picker" class="exercise-picker" hidden><div class="picker-panel"><div class="picker-head"><h3>Choisir un exercice</h3><input id="pickerSearch" class="input" placeholder="Rechercher…" style="max-width:260px"><button class="icon-btn" onclick="closePicker()">×</button></div><div id="pickerList" class="picker-list"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPA='https://hcjoagpkgpqxgzjdyfvd.supabase.co',KEY='sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB',STORE='hs_custom_programs_v1';
+const authClient=supabase.createClient(SUPA,KEY);
 let programs=[],exercises=[],editing=null,pickerSession=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(p){const r=await fetch(SUPA+'/rest/v1/'+p,{headers:{apikey:KEY,Authorization:'Bearer '+KEY,Accept:'application/json'},cache:'no-store'});if(!r.ok)throw Error(r.status);return r.json()}
 function loadLocal(){try{const x=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(x)?x:[]}catch{return[]}}
 function persist(){localStorage.setItem(STORE,JSON.stringify(programs))}
+async function syncAccount(){
+  const {data:{session}}=await authClient.auth.getSession();
+  if(!session)return;
+  const user=session.user;
+  for(const p of programs){
+    if(!p.local_id)p.local_id='program_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+    if(p.cloud_id){
+      await authClient.from('client_programs').update({name:p.name||'Programme',data:p,updated_at:new Date().toISOString()}).eq('id',p.cloud_id).eq('user_id',user.id);
+    }else{
+      const {data}=await authClient.from('client_programs').insert({user_id:user.id,source_program_id:p.source_program_id||null,name:p.name||'Programme',data:p}).select('id').single();
+      if(data)p.cloud_id=data.id;
+    }
+  }
+  const {data:cloud}=await authClient.from('client_programs').select('id,name,data').eq('user_id',user.id).order('updated_at',{ascending:false});
+  const known=new Set(programs.map(p=>p.cloud_id).filter(Boolean));
+  (cloud||[]).forEach(row=>{
+    if(!known.has(row.id)){
+      const p=row.data&&typeof row.data==='object'?{...row.data}:{};
+      p.cloud_id=row.id;
+      p.local_id=p.local_id||'program_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+      p.name=p.name||row.name||'Programme';
+      programs.push(p);
+    }
+  });
+  persist();
+  renderList();
+}
+async function deleteCloud(id){
+  if(!id)return;
+  const {data:{session}}=await authClient.auth.getSession();
+  if(session)await authClient.from('client_programs').delete().eq('id',id).eq('user_id',session.user.id);
+}
 function renderStats(){const el=document.getElementById('quickStats');const ex=programs.reduce((n,p)=>n+(p.sessions||[]).reduce((m,s)=>m+(s.exercises||[]).length,0),0);el.innerHTML='<div class="quick-stat"><b>'+programs.length+'</b><span>Programmes</span></div><div class="quick-stat"><b>'+programs.reduce((n,p)=>n+(p.sessions||[]).length,0)+'</b><span>Séances</span></div><div class="quick-stat"><b>'+ex+'</b><span>Exercices</span></div>'}
 function renderList(){renderStats();const el=document.getElementById('programList');if(!programs.length){el.innerHTML='<div class="empty">Tu n’as encore aucun programme personnel.<br>Crée ton premier programme.</div>';return}el.innerHTML=programs.map((p,i)=>'<article class="program-card"><p class="eyebrow">PROGRAMME PERSONNEL</p><h3>'+esc(p.name||'Sans nom')+'</h3><p class="muted">'+esc(p.objective||'')+(p.sessions?.length?' · '+p.sessions.length+' séance'+(p.sessions.length>1?'s':''):'')+'</p><p class="muted">'+esc(p.description||'')+'</p><div class="program-actions"><button class="btn primary" onclick="openProgram('+i+')">Modifier</button><button class="btn" onclick="duplicateLocal('+i+')">Dupliquer</button><button class="btn" onclick="deleteLocal('+i+')">Supprimer</button></div>'+(p.sessions?.length?'<div style="display:grid;gap:6px;margin-top:10px">'+p.sessions.map((s,si)=>'<button class="btn" onclick="startCustom('+i+','+si+')">▶ '+esc(s.name||('Séance '+(si+1)))+'</button>').join('')+'</div>':'')+'</article>').join('')}
 function blank(){return {id:'p_'+Date.now(),name:'',objective:'',description:'',sessions:[]}}
@@ -54,8 +88,8 @@ function removeExercise(si,ei){editing.sessions[si].exercises.splice(ei,1);rende
 async function openPicker(si){pickerSession=si;document.getElementById('picker').hidden=false;document.getElementById('picker').classList.add('show');document.getElementById('pickerSearch').value='';renderPicker();if(!exercises.length){try{exercises=await api('exercises?select=id,name_fr,equipment,muscles,slug&order=name_fr.asc')}catch{document.getElementById('pickerList').innerHTML='<div class="empty">Impossible de charger les exercices.</div>'}}renderPicker()}
 function closePicker(){document.getElementById('picker').hidden=true;document.getElementById('picker').classList.remove('show');pickerSession=null}
 function renderPicker(){const q=document.getElementById('pickerSearch').value.trim().toLowerCase();const list=exercises.filter(e=>String(e.name_fr||'').toLowerCase().includes(q)).slice(0,120);document.getElementById('pickerList').innerHTML=list.map(e=>'<div class="picker-item"><div><strong>'+esc(e.name_fr||'Exercice')+'</strong><small>'+esc(e.equipment||'Poids du corps')+'</small></div><div class="picker-actions"><a class="btn" href="fiche.html?id='+encodeURIComponent(e.id)+'" target="_blank">Fiche</a><button class="btn primary" onclick="addExercise('+JSON.stringify(e.id)+')">Ajouter</button></div></div>').join('')||'<div class="empty">Aucun exercice trouvé.</div>'}
-function duplicateLocal(i){const p=structuredClone(programs[i]);p.id='p_'+Date.now();p.name=(p.name||'Mon programme')+' (copie)';p.updatedAt=new Date().toISOString();programs.unshift(p);persist();renderList()}
-function deleteLocal(i){if(!confirm('Supprimer ce programme personnel ?'))return;programs.splice(i,1);persist();renderList()}
+function duplicateLocal(i){const p=structuredClone(programs[i]);p.id='p_'+Date.now();delete p.cloud_id;delete p.local_id;p.name=(p.name||'Mon programme')+' (copie)';p.updatedAt=new Date().toISOString();programs.unshift(p);persist();renderList()}
+async function deleteLocal(i){if(!confirm('Supprimer ce programme personnel ?'))return;const p=programs[i];programs.splice(i,1);persist();if(p?.cloud_id)await deleteCloud(p.cloud_id);renderList()}
 async function loadCoachPrograms(){const box=document.getElementById('coachPrograms');box.innerHTML='<div class="empty">Chargement des programmes HS Coaching…</div>';try{const ps=await api('programs?select=id,name,objective,description,is_published&is_published=eq.true&order=id.asc');if(!ps.length){box.innerHTML='<div class="empty">Aucun programme HS Coaching disponible.</div>';return}box.innerHTML=ps.map(p=>'<article class="program-card"><p class="eyebrow">HS COACHING</p><h3>'+esc(p.name||'Programme')+'</h3><p class="muted">'+esc(p.objective||'')+'</p><p class="muted">'+esc(p.description||'')+'</p><div class="program-actions"><button class="btn primary" onclick="cloneCoachProgram('+JSON.stringify(p.id)+')">Créer une copie</button></div></article>').join('')}catch(e){box.innerHTML='<div class="empty">Impossible de charger les programmes HS Coaching.</div>'}}
 async function cloneCoachProgram(id){try{const p=(await api('programs?select=id,name,objective,description&id=eq.'+encodeURIComponent(id)))[0];if(!p)return;const ss=await api('program_sessions?select=id,name,notes,position&program_id=eq.'+id+'&order=position.asc');const ids=ss.map(s=>s.id);const rows=ids.length?await api('program_exercises?select=session_id,exercise_id,position,sets,reps,rest,tempo,load,duration,notes&session_id=in.('+ids.join(',')+')&order=position.asc'):[];const exids=[...new Set(rows.map(x=>x.exercise_id))];const names=exids.length?Object.fromEntries((await api('exercises?select=id,name_fr&id=in.('+exids.join(',')+')')).map(x=>[x.id,x.name_fr])):{};const custom={id:'p_'+Date.now(),name:(p.name||'Programme')+' (copie)',objective:p.objective||'',description:p.description||'',updatedAt:new Date().toISOString(),sessions:ss.map((s,si)=>({id:'s_'+Date.now()+'_'+si,name:s.name||('Séance '+(si+1)),notes:s.notes||'',exercises:rows.filter(r=>String(r.session_id)===String(s.id)).sort((a,b)=>(a.position||0)-(b.position||0)).map(r=>({exercise_id:r.exercise_id,name:names[r.exercise_id]||'Exercice',sets:r.sets||3,reps:r.reps||'8-12',rest:r.rest||'90s',tempo:r.tempo||'',load:r.load||'',duration:r.duration||'',notes:r.notes||''}))}))};programs.unshift(custom);persist();renderList();document.getElementById('coachPrograms').innerHTML='';window.scrollTo(0,0)}catch(e){alert('Impossible de copier ce programme pour le moment.')}} 
 function addExercise(id){const e=exercises.find(x=>String(x.id)===String(id));if(!e)return;const s=editing.sessions[pickerSession];if(s.exercises.some(x=>String(x.exercise_id)===String(e.id)))return;s.exercises.push({exercise_id:e.id,name:e.name_fr||'Exercice',sets:3,reps:'8-12',rest:'90s',tempo:'',load:''});renderSessions();closePicker()}
@@ -64,5 +98,7 @@ function saveProgram(){editing.name=document.getElementById('programName').value
 function startCustom(i,si=0){const p=structuredClone(programs[i]);p.selectedSession=si;localStorage.setItem('hs_custom_active_program',JSON.stringify(p));window.location.href='seance.html?custom=1'}
 programs=loadLocal();
 renderList();
+syncAccount();
+authClient.auth.onAuthStateChange(()=>syncAccount());
 </script>
 </body></html>
