@@ -27,8 +27,8 @@
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
   });
-  const first=document.body.firstElementChild;
-  if(first) first.prepend(navEl); else document.body.prepend(navEl);
+  // Navigation principale affichée uniquement sur la page d'accueil de la bibliothèque.
+  // Les autres pages gardent leur propre en-tête.
 
   function addAlert(title,body,href){
     if(document.querySelector('.hs-client-alert'))return;
