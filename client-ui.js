@@ -25,10 +25,8 @@
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
   });
-  if(path!=='index.html'){
-    const first=document.body.firstElementChild;
-    if(first) first.prepend(navEl); else document.body.prepend(navEl);
-  }
+  const first=document.body.firstElementChild;
+  if(first) first.prepend(navEl); else document.body.prepend(navEl);
 
   function addAlert(title,body,href){
     if(document.querySelector('.hs-client-alert'))return;
