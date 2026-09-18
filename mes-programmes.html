@@ -19,7 +19,7 @@ body{background:#0b0b0b;color:#fff}
 <body>
 <header class="topbar"><div class="brand"><span class="brand-mark">HS</span><div><strong>HS COACHING</strong><small>Bibliothèque O2</small></div></div><nav class="nav"><a href="index.html">Exercices</a><a href="programmes.html">Programmes</a><a class="active" href="mes-programmes.html">Mes programmes</a><a href="compte.html">Compte</a></nav></header>
 <main class="container">
-<section class="hero" id="listView"><p class="eyebrow">MES PROGRAMMES</p><h1>Construis<br><span>ton programme.</span></h1><p>Crée tes propres séances à partir des fiches de la Bibliothèque O2. Tes programmes personnels sont associés à ton compte quand tu es connecté, pour les retrouver sur tous tes appareils.</p><div class="toolbar"><button class="btn primary" onclick="newProgram()">+ Créer un programme</button><button class="btn" onclick="loadCoachPrograms()">+ Partir d’un programme HS</button><a class="btn" href="index.html">← Bibliothèque</a></div>
+<section class="hero" id="listView"><h1>Mes programmes.</h1><p>Retrouve tes programmes, lance une séance ou crée ton propre programme.</p><div class="toolbar"><button class="btn primary" onclick="newProgram()">+ Créer un programme</button><button class="btn" onclick="loadCoachPrograms()">+ Programme HS Coaching</button><a class="btn" href="index.html">← Bibliothèque</a></div>
 <div id="quickStats" class="quick-stats"></div><div id="programList" class="program-list"></div><div id="coachPrograms" class="program-list" style="margin-top:18px"></div></section>
 <section id="editor" class="editor">
 <div class="editor-head"><div><p class="eyebrow">CRÉATION</p><h2 id="editorTitle">Nouveau programme</h2></div><button class="btn" onclick="closeEditor()">× Fermer</button></div>
@@ -101,4 +101,4 @@ renderList();
 syncAccount();
 authClient.auth.onAuthStateChange(()=>syncAccount());
 </script>
-</body></html>
+<script>window.HS_SUPABASE_CONFIG={url:"https://hcjoagpkgpqxgzjdyfvd.supabase.co",key:"sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB"};</script><script src="client-ui.js"></script></body></html>
