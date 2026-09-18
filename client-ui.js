@@ -2,10 +2,9 @@
 (function(){
   const path=(location.pathname.split('/').pop()||'compte.html').toLowerCase();
   const nav=[
-    ['compte.html','Accueil','⌂'],
+    ['index.html','Accueil','⌂'],
     ['mes-programmes.html','Programmes','▣'],
-    ['progression-simple.html','Progression','↗'],
-    ['mon-coach.html','Mon coach','✉']
+    ['compte.html','Mon compte','●']
   ];
   const style=document.createElement('style');
   style.textContent=`
