@@ -80,11 +80,14 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   'use strict';
 
   const KEY = 'hs_workout_history_v1';
+  const SUPA='https://hcjoagpkgpqxgzjdyfvd.supabase.co',SUPA_KEY='sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB';
+  const authClient=supabase.createClient(SUPA,SUPA_KEY);
   const app = document.getElementById('app');
   const detail = document.getElementById('detail');
   const backTop = document.getElementById('backTop');
@@ -351,8 +354,30 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
     };
   }
 
-  function start(){
+  async function syncCloudHistory(){
+    const {data:{session}}=await authClient.auth.getSession();
+    if(!session)return;
+    const {data,error}=await authClient.from('client_workouts').select('id,data,program_name,session_name,workout_date,duration_minutes').eq('user_id',session.user.id).order('workout_date',{ascending:false});
+    if(error){console.warn('HS progression cloud history',error);return;}
+    const local=readHistory();
+    const ids=new Set(local.map(h=>h.cloud_id).filter(Boolean));
+    let merged=local.slice();
+    (data||[]).forEach(row=>{
+      if(ids.has(row.id))return;
+      const h=row.data&&typeof row.data==='object'?{...row.data}:{};
+      h.cloud_id=row.id;
+      if(!h.date)h.date=row.workout_date;
+      if(!h.program_name)h.program_name=row.program_name;
+      if(!h.session_name)h.session_name=row.session_name;
+      if(h.duration_minutes==null)h.duration_minutes=row.duration_minutes;
+      merged.push(h);
+    });
+    localStorage.setItem(KEY,JSON.stringify(merged));
+  }
+
+  async function start(){
     try{
+      await syncCloudHistory();
       render();
     }catch(error){
       console.error('HS progression render error',error);
