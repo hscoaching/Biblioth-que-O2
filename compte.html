@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0b">
+<title>HS Coaching — Mon compte</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}.wrap{max-width:560px;margin:auto;padding:24px 18px 50px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:34px}.brand{display:flex;align-items:center;gap:9px}.mark{width:38px;height:38px;border-radius:11px;background:#fff;color:#000;display:grid;place-items:center;font-weight:900;font-size:12px}.brand strong{display:block;font-size:12px}.brand small{display:block;color:#666;font-size:9px;margin-top:3px}.back{color:#fff;text-decoration:none;font-size:10px;font-weight:900;border:1px solid #333;border-radius:9px;padding:9px 11px;background:#151515}.eyebrow{font-size:9px;letter-spacing:1.6px;color:#666;font-weight:900;margin:0 0 7px}.hero h1{font-size:40px;line-height:.98;letter-spacing:-2px;margin:0 0 12px}.hero h1 span{color:#888}.intro{color:#888;font-size:12px;line-height:1.55}.card{background:#141414;border:1px solid #292929;border-radius:16px;padding:18px;margin-top:16px}.field{margin-top:11px}.field label{display:block;color:#777;font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:900;margin:0 0 6px}.input{width:100%;height:46px;border:1px solid #333;border-radius:10px;background:#0e0e0e;color:#fff;padding:0 12px;outline:none}.input:focus{border-color:#777}.btn{width:100%;min-height:46px;border:1px solid #333;border-radius:11px;background:#191919;color:#fff;font-size:11px;font-weight:900;cursor:pointer;margin-top:11px}.btn.primary{background:#fff;color:#000;border-color:#fff}.switch{text-align:center;margin-top:13px;color:#777;font-size:10px}.switch button,.link{border:0;background:none;color:#fff;text-decoration:underline;cursor:pointer;font:inherit}.msg{margin-top:11px;padding:10px;border-radius:10px;font-size:10px;line-height:1.45;display:none}.msg.show{display:block}.msg.error{background:#281313;border:1px solid #512626;color:#ffb0b0}.msg.ok{background:#142016;border:1px solid #29402d;color:#b8d9bd}.account-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.account-email{color:#aaa;font-size:11px;margin-top:5px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.stat{background:#101010;border:1px solid #292929;border-radius:11px;padding:12px}.stat b{display:block;font-size:20px}.stat span{display:block;color:#666;font-size:8px;text-transform:uppercase;letter-spacing:.8px;margin-top:4px}.note{color:#777;font-size:10px;line-height:1.5;margin-top:14px}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top"><div class="brand"><span class="mark">HS</span><div><strong>HS COACHING</strong><small>Bibliothèque O2</small></div></div><a class="back" href="index.html">← Bibliothèque</a></header>
+<section class="hero"><p class="eyebrow">ESPACE CLIENT</p><h1>Ton compte.<br><span>Ton suivi.</span></h1><p class="intro">Retrouve ton espace personnel et, bientôt, tes programmes et tes performances sur tous tes appareils.</p></section>
+<section id="authCard" class="card">
+<div id="loginBox">
+<p class="eyebrow">CONNEXION</p>
+<div class="field"><label>Email</label><input id="loginEmail" class="input" type="email" autocomplete="email" placeholder="ton@email.com"></div>
+<div class="field"><label>Mot de passe</label><input id="loginPassword" class="input" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+<button class="btn primary" onclick="login()">Se connecter</button>
+<div class="switch">Pas encore de compte ? <button onclick="showSignup()">Créer mon compte</button></div>
+<div class="switch"><button onclick="showReset()">Mot de passe oublié ?</button></div>
+</div>
+<div id="signupBox" class="hidden">
+<p class="eyebrow">INSCRIPTION</p>
+<div class="field"><label>Prénom</label><input id="signupName" class="input" type="text" autocomplete="given-name" placeholder="Hugo"></div>
+<div class="field"><label>Email</label><input id="signupEmail" class="input" type="email" autocomplete="email" placeholder="ton@email.com"></div>
+<div class="field"><label>Mot de passe</label><input id="signupPassword" class="input" type="password" autocomplete="new-password" placeholder="8 caractères minimum"></div>
+<button class="btn primary" onclick="signup()">Créer mon compte</button>
+<div class="switch"><button onclick="showLogin()">← Retour à la connexion</button></div>
+</div>
+<div id="resetBox" class="hidden">
+<p class="eyebrow">RÉINITIALISATION</p>
+<div class="field"><label>Email</label><input id="resetEmail" class="input" type="email" autocomplete="email" placeholder="ton@email.com"></div>
+<button class="btn primary" onclick="resetPassword()">Envoyer le lien</button>
+<div class="switch"><button onclick="showLogin()">← Retour à la connexion</button></div>
+</div>
+<div id="msg" class="msg"></div>
+</section>
+<section id="accountCard" class="card hidden">
+<div class="account-head"><div><p class="eyebrow">MON ESPACE</p><div id="accountName" style="font-size:20px;font-weight:900">Bonjour 👋</div><div id="accountEmail" class="account-email"></div></div><button class="back" onclick="logout()">Déconnexion</button></div>
+<div class="grid"><div class="stat"><b id="programCount">0</b><span>Programmes locaux</span></div><div class="stat"><b id="historyCount">0</b><span>Séances enregistrées</span></div></div>
+<p class="note">La prochaine étape sera de synchroniser tes programmes et ta progression avec ce compte pour pouvoir les retrouver sur ton téléphone et ton ordinateur.</p>
+<a class="btn primary" style="display:block;text-align:center;text-decoration:none;padding-top:15px" href="mes-programmes.html">Mes programmes →</a>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPA='https://hcjoagpkgpqxgzjdyfvd.supabase.co',KEY='sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB';
+const client=supabase.createClient(SUPA,KEY);
+const $=id=>document.getElementById(id);
+function msg(t,type='error'){$('msg').textContent=t;$('msg').className='msg show '+type}
+function clearMsg(){$('msg').className='msg'}
+function showLogin(){['signupBox','resetBox'].forEach(id=>$(id).classList.add('hidden'));$('loginBox').classList.remove('hidden');clearMsg()}
+function showSignup(){['loginBox','resetBox'].forEach(id=>$(id).classList.add('hidden'));$('signupBox').classList.remove('hidden');clearMsg()}
+function showReset(){['loginBox','signupBox'].forEach(id=>$(id).classList.add('hidden'));$('resetBox').classList.remove('hidden');clearMsg()}
+async function login(){clearMsg();const email=$('loginEmail').value.trim(),password=$('loginPassword').value;if(!email||!password)return msg('Renseigne ton email et ton mot de passe.');const {error}=await client.auth.signInWithPassword({email,password});if(error)return msg(error.message);await render()}
+async function signup(){clearMsg();const name=$('signupName').value.trim(),email=$('signupEmail').value.trim(),password=$('signupPassword').value;if(!email||!password)return msg('Renseigne ton email et ton mot de passe.');if(password.length<8)return msg('Choisis un mot de passe d’au moins 8 caractères.');const {data,error}=await client.auth.signUp({email,password,options:{data:{first_name:name}}});if(error)return msg(error.message);if(data.session){msg('Compte créé. Bienvenue dans HS Coaching 💪','ok');await render()}else msg('Compte créé. Vérifie ton email pour confirmer ton compte avant de te connecter.','ok')}
+async function resetPassword(){clearMsg();const email=$('resetEmail').value.trim();if(!email)return msg('Renseigne ton email.');const redirect=location.origin+location.pathname;const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:redirect});if(error)return msg(error.message);msg('Si cette adresse correspond à un compte, un email de réinitialisation va être envoyé.','ok')}
+async function logout(){await client.auth.signOut();await render()}
+async function render(){const {data}=await client.auth.getSession();const session=data.session;if(!session){$('authCard').classList.remove('hidden');$('accountCard').classList.add('hidden');return}const user=session.user;$('authCard').classList.add('hidden');$('accountCard').classList.remove('hidden');$('accountName').textContent='Bonjour '+(user.user_metadata?.first_name||'👋');$('accountEmail').textContent=user.email||'';try{$('programCount').textContent=JSON.parse(localStorage.getItem('hs_custom_programs_v1')||'[]').length}catch{$('programCount').textContent='0'}try{$('historyCount').textContent=JSON.parse(localStorage.getItem('hs_workout_history_v1')||'[]').length}catch{$('historyCount').textContent='0'}}
+client.auth.onAuthStateChange(()=>render());
+render();
+</script>
+</body>
+</html>
