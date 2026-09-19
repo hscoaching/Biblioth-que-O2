@@ -1,6 +1,7 @@
 /* HS Coaching — navigation client + notifications */
 (function(){
-  const path=(location.pathname.split('/').pop()||'compte.html').toLowerCase();
+  const rawPath=location.pathname.split('/').pop().toLowerCase();
+  const path=(!rawPath||rawPath==='index.html')?'index.html':rawPath;
   // Navigation principale unique de la bibliothèque
   const nav=[
     ['index.html','Accueil'],
@@ -11,15 +12,13 @@
   style.textContent=`
 .hs-client-nav{position:static;z-index:100;display:flex;align-items:center;gap:4px;padding:4px;margin:0 12px 0 auto;background:rgba(11,11,11,.94);backdrop-filter:blur(14px);border:1px solid #252525;border-radius:10px;box-shadow:0 8px 30px #0005;width:max-content;max-width:calc(100% - 12px)}
 .hs-client-nav a{position:relative;flex:0 0 auto;color:#777;text-decoration:none;text-align:center;padding:7px 10px;border-radius:7px;font-size:10px;font-weight:900;white-space:nowrap}
-.hs-client-nav a.active{background:#fff;color:#000}
-
+.hs-client-nav a.active{background:#fff !important;color:#000 !important}
 .hs-client-badge{position:absolute;top:3px;right:18%;min-width:15px;height:15px;padding:0 4px;border-radius:99px;background:#fff;color:#000;border:2px solid #111;font-size:8px;line-height:11px}
 .hs-client-alert{margin:0 0 12px;padding:11px 13px;border:1px solid #333;border-radius:12px;background:#141414;color:#fff;font-size:10px;line-height:1.45}
 .hs-client-alert strong{display:block;font-size:11px;margin-bottom:3px}
 @media(max-width:650px){.hs-client-nav{margin:0 8px 0 auto;gap:3px;padding:3px}.hs-client-nav a{padding:7px 6px;font-size:9px}.hs-client-badge{right:8%}}
 `;
   document.head.appendChild(style);
-  // Supprime toute ancienne navigation pour éviter les doublons.
   document.querySelectorAll('.hs-client-nav, .nav').forEach(el=>el.remove());
   const navEl=document.createElement('nav');navEl.className='hs-client-nav';navEl.setAttribute('aria-label','Navigation principale');
   nav.forEach(([href,label])=>{
@@ -28,7 +27,6 @@
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
   });
-  // Navigation compacte en haut à droite, comme le menu d'origine.
   const topbar=document.querySelector('.topbar');
   if(topbar){ topbar.appendChild(navEl); }
   else { document.body.insertBefore(navEl, document.body.firstChild); }
