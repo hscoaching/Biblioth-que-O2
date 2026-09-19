@@ -46,7 +46,8 @@
 <div class="account-head"><div><div id="accountName" style="font-size:20px;font-weight:900">Bonjour 👋</div><div id="accountEmail" class="account-email"></div></div><button class="back" onclick="logout()">Déconnexion</button></div>
 <div class="grid"><div class="stat"><b id="programCount">0</b><span>Programmes</span></div><div class="stat"><b id="historyCount">0</b><span>Séances</span></div></div>
 <div id="syncStatus" class="sync">Synchronisation…</div>
-<p class="note">Tes programmes personnels et ton historique sont associés à ton compte et accessibles sur tes différents appareils.</p>
+<p class="note">Tes programmes, tes séances et ton historique sont associés à ton compte et accessibles sur tes différents appareils.</p>
+<div id="assignedPrograms" style="margin-top:16px"></div>
 <a class="btn primary" style="display:block;text-align:center;text-decoration:none;padding-top:15px" href="progression-simple.html">📈 Progression & historique →</a><a class="btn" style="display:block;text-align:center;text-decoration:none;padding-top:15px;margin-top:8px" href="mon-coach.html">💬 Mon coach →</a>
 </section>
 </main>
@@ -135,10 +136,19 @@ async function syncHistory(user){
   return merged;
 }
 
+async function loadAssignedPrograms(user){
+  const box=$('assignedPrograms');if(!box)return;
+  const {data,error}=await client.from('client_programs').select('id,name,source_program_id,data,created_at,updated_at').eq('user_id',user.id).order('updated_at',{ascending:false});
+  if(error){box.innerHTML='<div class="note">Impossible de charger tes programmes attribués.</div>';return}
+  const rows=Array.isArray(data)?data:[];
+  box.innerHTML='<div style="font-size:9px;letter-spacing:1.5px;color:#666;font-weight:900;margin-bottom:8px">PROGRAMMES DE TON COACH</div>'+
+    (rows.length?rows.map(r=>'<div style="background:#101010;border:1px solid #292929;border-radius:11px;padding:12px;margin-top:7px"><div style="font-size:12px;font-weight:900">'+String(r.name||'Programme').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</div><div style="font-size:9px;color:#666;margin-top:4px">Attribué le '+new Date(r.created_at).toLocaleDateString('fr-FR')+'</div><a class="btn primary" style="display:block;text-align:center;text-decoration:none;padding-top:12px;margin-top:9px" href="programmes.html?assigned='+encodeURIComponent(r.id)+'">Ouvrir le programme →</a></div>').join(''):'<div class="note">Aucun programme attribué pour le moment.</div>');
+}
 async function syncLocal(user){
   setSync('Synchronisation de tes données…');
   const programs=await syncPrograms(user);
   const history=await syncHistory(user);
+  await loadAssignedPrograms(user);
   $('programCount').textContent=programs.length;
   $('historyCount').textContent=history.length;
   setSync('✓ Données synchronisées');
