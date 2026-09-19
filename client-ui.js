@@ -5,7 +5,7 @@
   // Navigation principale unique de la bibliothèque
   const nav=[
     ['index.html','Accueil'],
-    ['mes-programmes.html','Programmes'],
+    ['programmes.html','Programmes'],
     ['compte.html','Mon compte']
   ];
   const style=document.createElement('style');
@@ -36,7 +36,7 @@
     const a=document.createElement('a');a.className='hs-client-alert';a.href=href||'mon-coach.html';a.style.textDecoration='none';a.style.display='block';
     a.innerHTML='<strong>'+esc(title)+'</strong><span>'+esc(body)+'</span><button type="button" class="hs-client-alert-close" aria-label="Supprimer la notification">×</button>';
     const close=a.querySelector('.hs-client-alert-close');
-    close.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();await dismissNotification(notificationId);a.remove();const badge=navEl.querySelector('.hs-client-badge');if(badge){badge.hidden=true;badge.textContent=''} });
+    close.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();a.remove();const badge=navEl.querySelector('.hs-client-badge');if(badge){badge.hidden=true;badge.textContent=''};if(notificationId==='test'){localStorage.removeItem('hs_test_notification_v1');return}await dismissNotification(notificationId); });
     const target=document.querySelector('main')||document.body;
     target.insertBefore(a,target.firstChild);
   }
