@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HS Coaching — Tableau de bord</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{background:#0b0b0b;color:#fff}.wrap{max-width:1200px;margin:auto;padding:24px 16px 60px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.eyebrow{color:#777;font-size:10px;font-weight:900;letter-spacing:.14em}.sub{color:#888}
+.layout{display:grid;grid-template-columns:260px 1fr;gap:16px}.panel{background:#141414;border:1px solid #292929;border-radius:16px;padding:16px}
+.clients{display:grid;gap:7px}.client{width:100%;text-align:left;border:1px solid #292929;background:#101010;color:#fff;border-radius:12px;padding:12px;cursor:pointer}.client:hover,.client.active{background:#242424;border-color:#444}.client strong{display:block}.client small{color:#777}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}.stat{background:#101010;border:1px solid #292929;border-radius:12px;padding:13px}.stat b{display:block;font-size:23px}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.tabs button,.btn{border:0;background:#242424;color:#fff;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer}.tabs button.active,.primary{background:#fff;color:#000}
+.card{background:#101010;border:1px solid #292929;border-radius:13px;padding:13px;margin:8px 0}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.muted{color:#777;font-size:12px}.badge{display:inline-block;background:#222;color:#aaa;border-radius:999px;padding:4px 8px;font-size:10px}.empty{padding:35px;text-align:center;color:#666}.search{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid #303030;color:#fff;border-radius:10px;padding:10px;margin-bottom:10px}
+#error{color:#ffb0b0}.top-actions{display:flex;gap:7px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.head{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="brand"><span class="brand-mark">HS</span><div><strong>HS COACHING</strong><small>Tableau de bord</small></div></div><div class="top-actions"><a class="btn" href="admin.html">Bibliothèque</a><button class="btn" id="logout">Déconnexion</button></div></header>
+<main class="wrap">
+<div id="login" class="panel" style="max-width:430px;margin:70px auto">
+<p class="eyebrow">TABLEAU DE BORD</p><h1>Connexion privée</h1><p class="sub">Réservé à l'administrateur HS Coaching.</p>
+<input id="email" class="search" type="email" placeholder="Email"><input id="password" class="search" type="password" placeholder="Mot de passe">
+<button id="loginBtn" class="btn primary">Se connecter</button><p id="loginError"></p>
+</div>
+<section id="app" hidden>
+<div class="head"><div><p class="eyebrow">HS COACHING</p><h1>Tableau de bord</h1><p id="who" class="sub"></p></div></div>
+<div class="layout">
+<aside class="panel"><h3>Clients</h3><input id="search" class="search" placeholder="Rechercher un client…"><div id="clients" class="clients"></div></aside>
+<section class="panel">
+<div id="empty" class="empty">Sélectionne un client pour consulter son suivi.</div>
+<div id="detail" hidden>
+<div class="row"><div><p class="eyebrow">CLIENT</p><h2 id="clientName" style="margin:4px 0"></h2><div id="clientEmail" class="muted"></div></div><span id="clientSince" class="badge"></span></div>
+<div class="stats"><div class="stat"><b id="statPrograms">0</b><span class="muted">Programmes perso</span></div><div class="stat"><b id="statWorkouts">0</b><span class="muted">Séances réalisées</span></div><div class="stat"><b id="statMinutes">0</b><span class="muted">Minutes</span></div></div>
+<div class="tabs"><button class="active" data-tab="programs">Programmes</button><button data-tab="evolution">Évolution</button></div>
+<div id="programsTab"></div><div id="evolutionTab" hidden></div>
+</div></section>
+</div>
+<p id="error"></p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://hcjoagpkgpqxgzjdyfvd.supabase.co',SB_KEY='sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB',sb=supabase.createClient(SB_URL,SB_KEY);
+let clients=[],selected=null,programs=[],workouts=[];
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),date=v=>v?new Date(v).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+
+async function adminUser(){const {data:{user}}=await sb.auth.getUser();if(!user)return null;const {data,error}=await sb.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(error||!data)return null;return user}
+async function boot(){const u=await adminUser();if(!u){$('login').hidden=false;return}$('login').hidden=true;$('app').hidden=false;$('who').textContent='Connecté en tant que '+(u.email||'administrateur');await loadClients()}
+async function loadClients(){const {data,error}=await sb.rpc('admin_list_clients');if(error){$('error').textContent='Impossible de charger les clients : '+error.message;return}clients=data||[];renderClients()}
+function renderClients(){const q=$('search').value.trim().toLowerCase();const a=clients.filter(c=>(c.first_name||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q));$('clients').innerHTML=a.map(c=>'<button class="client '+(selected?.user_id===c.user_id?'active':'')+'" data-id="'+c.user_id+'"><strong>'+esc(c.first_name||'Client sans prénom')+'</strong><small>'+esc(c.email||'')+'</small></button>').join('')||'<div class="muted">Aucun client.</div>';document.querySelectorAll('.client').forEach(b=>b.onclick=()=>selectClient(b.dataset.id))}
+async function selectClient(id){selected=clients.find(c=>c.user_id===id);renderClients();$('empty').hidden=true;$('detail').hidden=false;$('clientName').textContent=selected?.first_name||'Client';$('clientEmail').textContent=selected?.email||'';$('clientSince').textContent='Depuis '+date(selected?.created_at);$('programsTab').innerHTML='<div class="empty">Chargement…</div>';$('evolutionTab').innerHTML='';const p=await sb.from('client_programs').select('id,name,created_at,updated_at,data,source_program_id').eq('user_id',id).order('updated_at',{ascending:false});const w=await sb.from('client_workouts').select('id,program_name,session_name,workout_date,duration_minutes,data').eq('user_id',id).order('workout_date',{ascending:false});if(p.error||w.error){$('error').textContent='Erreur de chargement : '+(p.error?.message||w.error?.message);return}programs=p.data||[];workouts=w.data||[];renderDetail()}
+function renderDetail(){$('statPrograms').textContent=programs.length;$('statWorkouts').textContent=workouts.length;$('statMinutes').textContent=workouts.reduce((n,w)=>n+(Number(w.duration_minutes)||0),0);$('programsTab').innerHTML=programs.map(p=>'<div class="card"><div class="row"><div><strong>'+esc(p.name||'Programme sans nom')+'</strong><div class="muted">Créé le '+date(p.created_at)+' · Mis à jour le '+date(p.updated_at)+'</div></div><span class="badge">Programme perso</span></div></div>').join('')||'<div class="empty">Aucun programme personnel attribué.</div>';$('evolutionTab').innerHTML=workouts.map(w=>'<div class="card"><div class="row"><div><strong>'+esc(w.session_name||'Séance')+'</strong><div class="muted">'+esc(w.program_name||'')+' · '+date(w.workout_date)+'</div></div><span class="badge">'+(w.duration_minutes?esc(w.duration_minutes)+' min':'Séance réalisée')+'</span></div></div>').join('')||'<div class="empty">Aucune séance enregistrée pour le moment.</div>'}
+$('search').oninput=renderClients;$('loginBtn').onclick=async()=>{const r=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(r.error){$('loginError').textContent=r.error.message;return}boot()};$('logout').onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('programsTab').hidden=b.dataset.tab!=='programs';$('evolutionTab').hidden=b.dataset.tab!=='evolution'});boot();
+</script>
+</body></html>
