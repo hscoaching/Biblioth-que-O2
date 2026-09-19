@@ -15,7 +15,7 @@
 .hs-client-nav a.active{background:#fff !important;color:#000 !important}
 .hs-client-badge{position:absolute;top:3px;right:18%;min-width:15px;height:15px;padding:0 4px;border-radius:99px;background:#fff;color:#000;border:2px solid #111;font-size:8px;line-height:11px}
 .hs-client-alert{margin:0 0 12px;padding:11px 13px;border:1px solid #333;border-radius:12px;background:#141414;color:#fff;font-size:10px;line-height:1.45}
-.hs-client-alert strong{display:block;font-size:11px;margin-bottom:3px}
+ .hs-client-alert strong{display:block;font-size:11px;margin-bottom:3px}.hs-client-alert{position:relative;padding-right:38px}.hs-client-alert-close{position:absolute;right:8px;top:8px;width:24px;height:24px;border:1px solid #333;border-radius:7px;background:#0e0e0e;color:#aaa;font-size:14px;font-weight:900;line-height:20px;cursor:pointer}
 @media(max-width:650px){.hs-client-nav{margin:0 8px 0 auto;gap:3px;padding:3px}.hs-client-nav a{padding:7px 6px;font-size:9px}.hs-client-badge{right:8%}}
 `;
   document.head.appendChild(style);
@@ -31,10 +31,12 @@
   if(topbar){ topbar.appendChild(navEl); }
   else { document.body.insertBefore(navEl, document.body.firstChild); }
 
-  function addAlert(title,body,href){
+  function addAlert(title,body,href,notificationId){
     if(document.querySelector('.hs-client-alert'))return;
     const a=document.createElement('a');a.className='hs-client-alert';a.href=href||'mon-coach.html';a.style.textDecoration='none';a.style.display='block';
-    a.innerHTML='<strong>'+esc(title)+'</strong><span>'+esc(body)+'</span>';
+    a.innerHTML='<strong>'+esc(title)+'</strong><span>'+esc(body)+'</span><button type="button" class="hs-client-alert-close" aria-label="Supprimer la notification">×</button>';
+    const close=a.querySelector('.hs-client-alert-close');
+    close.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();await dismissNotification(notificationId);a.remove();const badge=navEl.querySelector('.hs-client-badge');if(badge){badge.hidden=true;badge.textContent=''} });
     const target=document.querySelector('main')||document.body;
     target.insertBefore(a,target.firstChild);
   }
@@ -42,7 +44,7 @@
   async function notifications(){
     if(localStorage.getItem('hs_test_client_mode')==='1'){
       const n=localStorage.getItem('hs_test_notification_v1');
-      if(n){try{const x=JSON.parse(n);const badge=navEl.querySelector('.hs-client-badge');if(badge){badge.hidden=false;badge.textContent='1'}addAlert(x.title||'Nouveau message',x.body||'Une nouveauté est disponible.','mon-coach.html')}catch{}}
+      if(n){try{const x=JSON.parse(n);const badge=navEl.querySelector('.hs-client-badge');if(badge){badge.hidden=false;badge.textContent='1'}addAlert(x.title||'Nouveau message',x.body||'Une nouveauté est disponible.','mon-coach.html','test')}catch{}}
       return;
     }
     if(!window.supabase)return;
@@ -56,7 +58,7 @@
       const badge=navEl.querySelector('.hs-client-badge');
       if(badge&&data.length){badge.hidden=false;badge.textContent=data.length>9?'9+':String(data.length)}
       const latest=data[0];
-      if(latest&&!path.includes('compte.html'))addAlert(latest.title||'Nouveau message',latest.body||'Une nouveauté est disponible.',latest.type==='program'?'mes-programmes.html':'mon-coach.html');
+      if(latest&&!path.includes('compte.html'))addAlert(latest.title||'Nouveau message',latest.body||'Une nouveauté est disponible.',latest.type==='program'?'mes-programmes.html':'mon-coach.html',latest.id);
       if(path==='mon-coach.html'&&data.length){await sb.from('client_notifications').update({read_at:new Date().toISOString()}).in('id',data.map(x=>x.id))}
     }catch(e){console.warn('HS notifications',e)}
   }
