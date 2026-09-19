@@ -48,7 +48,7 @@
 <div id="syncStatus" class="sync">Synchronisation…</div>
 <p class="note">Tes programmes, tes séances et ton historique sont associés à ton compte et accessibles sur tes différents appareils.</p>
 <div id="assignedPrograms" style="margin-top:16px"></div>
-<a class="btn primary" style="display:block;text-align:center;text-decoration:none;padding-top:15px" href="progression-simple.html">📈 Progression & historique →</a><a class="btn" style="display:block;text-align:center;text-decoration:none;padding-top:15px;margin-top:8px" href="mon-coach.html">💬 Mon coach →</a>
+<a id="coachLink" class="btn" style="display:none;text-align:center;text-decoration:none;padding-top:15px" href="coach.html">🧑‍💼 Espace coach →</a><a class="btn primary" style="display:block;text-align:center;text-decoration:none;padding-top:15px;margin-top:8px" href="progression-simple.html">📈 Progression & historique →</a><a class="btn" style="display:block;text-align:center;text-decoration:none;padding-top:15px;margin-top:8px" href="mon-coach.html">💬 Mon coach →</a>
 </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -136,6 +136,7 @@ async function syncHistory(user){
   return merged;
 }
 
+async function showCoachLink(){try{const {data}=await client.auth.getSession();if(!data.session)return;const {data:isAdmin}=await client.rpc('is_admin');if(isAdmin&&$('coachLink'))$('coachLink').style.display='block'}catch(e){console.warn('admin link',e)}}
 async function loadAssignedPrograms(user){
   const box=$('assignedPrograms');if(!box)return;
   const {data,error}=await client.from('client_programs').select('id,name,source_program_id,data,created_at,updated_at').eq('user_id',user.id).order('updated_at',{ascending:false});
@@ -172,7 +173,7 @@ let testBtn=document.getElementById('exitTestBtn');if(!testBtn){testBtn=document
   if(!session){$('authCard').classList.remove('hidden');$('accountCard').classList.add('hidden');return}
   const user=session.user;
   $('authCard').classList.add('hidden');$('accountCard').classList.remove('hidden');
-  $('accountName').textContent='Bonjour '+(user.user_metadata?.first_name||'👋');$('accountEmail').textContent=user.email||'';
+  $('accountName').textContent='Bonjour '+(user.user_metadata?.first_name||'👋');$('accountEmail').textContent=user.email||'';showCoachLink();
   const localPrograms=readLocal(STORE_PROGRAMS),localHistory=readLocal(STORE_HISTORY);
   $('programCount').textContent=localPrograms.length;$('historyCount').textContent=localHistory.length;
   await syncLocal(user);
