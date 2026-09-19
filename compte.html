@@ -59,7 +59,7 @@ const $=id=>document.getElementById(id);
 function msg(t,type='error'){$('msg').textContent=t;$('msg').className='msg show '+type}
 function clearMsg(){$('msg').className='msg'}
 function isTestMode(){return localStorage.getItem('hs_test_client_mode')==='1'}
-function testProgram(){return {local_id:'test_program_1',name:'Programme test — Client',description:'Programme de démonstration HS Coaching',days:[{name:'Séance 1',exercises:[{name:'Développé couché',sets:3,reps:'8-10'},{name:'Tirage vertical',sets:3,reps:'10-12'},{name:'Curl haltères',sets:3,reps:'10-12'}]}]}}
+function testProgram(){return {local_id:'test_program_1',name:'Programme test — Client',objective:'Démonstration',description:'Programme de démonstration HS Coaching',sessions:[{id:'test_session_1',name:'Séance 1',notes:'Séance de démonstration',exercises:[{exercise_id:'test_ex_1',name:'Développé couché',sets:3,reps:'8-10',rest:'90s'},{exercise_id:'test_ex_2',name:'Tirage vertical',sets:3,reps:'10-12',rest:'90s'},{exercise_id:'test_ex_3',name:'Curl haltères',sets:3,reps:'10-12',rest:'60s'}]}]}}
 function enterTestMode(){
   localStorage.setItem('hs_test_client_mode','1');
   const programs=readLocal(STORE_PROGRAMS);if(!programs.some(p=>p.local_id==='test_program_1'))programs.push(testProgram());saveLocal(STORE_PROGRAMS,programs);
