@@ -5,7 +5,7 @@
   // Navigation principale unique de la bibliothèque
   const nav=[
     ['index.html','Accueil'],
-    ['programmes.html','Programmes'],
+    ['mes-programmes.html','Programmes'],
     ['compte.html','Mon compte']
   ];
   const style=document.createElement('style');
