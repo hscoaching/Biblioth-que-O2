@@ -11,6 +11,7 @@
   style.textContent=`
 .hs-client-nav{position:static;z-index:100;display:flex;align-items:center;gap:4px;padding:4px;margin:0 12px 0 auto;background:rgba(11,11,11,.94);backdrop-filter:blur(14px);border:1px solid #252525;border-radius:10px;box-shadow:0 8px 30px #0005;width:max-content;max-width:calc(100% - 12px)}
 .hs-client-nav a{position:relative;flex:0 0 auto;color:#777;text-decoration:none;text-align:center;padding:7px 10px;border-radius:7px;font-size:10px;font-weight:900;white-space:nowrap}
+.hs-client-nav a.active{background:#fff;color:#000}
 
 .hs-client-badge{position:absolute;top:3px;right:18%;min-width:15px;height:15px;padding:0 4px;border-radius:99px;background:#fff;color:#000;border:2px solid #111;font-size:8px;line-height:11px}
 .hs-client-alert{margin:0 0 12px;padding:11px 13px;border:1px solid #333;border-radius:12px;background:#141414;color:#fff;font-size:10px;line-height:1.45}
@@ -22,7 +23,7 @@
   document.querySelectorAll('.hs-client-nav, .nav').forEach(el=>el.remove());
   const navEl=document.createElement('nav');navEl.className='hs-client-nav';navEl.setAttribute('aria-label','Navigation principale');
   nav.forEach(([href,label])=>{
-    const a=document.createElement('a');a.href=href;a.className='';
+    const a=document.createElement('a');a.href=href;a.className=path===href?'active':'';
     a.textContent=label;
     if(href==='compte.html'){const b=document.createElement('span');b.className='hs-client-badge';b.hidden=true;a.appendChild(b)}
     navEl.appendChild(a);
