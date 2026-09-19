@@ -92,7 +92,7 @@ body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial,sans-serif}
   const detail = document.getElementById('detail');
   const backTop = document.getElementById('backTop');
   const query = new URLSearchParams(window.location.search);
-  backTop.href = query.get('program_id') ? 'programmes.html' : 'mes-programmes.html';
+  backTop.href = 'programmes.html';
 
   function esc(value){
     return String(value == null ? '' : value)
