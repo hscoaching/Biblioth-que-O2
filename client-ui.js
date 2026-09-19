@@ -41,6 +41,26 @@
     target.insertBefore(a,target.firstChild);
   }
   function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  async function dismissNotification(id){
+    if(localStorage.getItem('hs_test_client_mode')==='1'){
+      localStorage.removeItem('hs_test_notification_v1');
+      return true;
+    }
+    if(!id||!window.supabase)return false;
+    try{
+      const cfg=window.HS_SUPABASE_CONFIG;
+      if(!cfg)return false;
+      const sb=window.supabase.createClient(cfg.url,cfg.key);
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session)return false;
+      const {error}=await sb.from('client_notifications')
+        .update({read_at:new Date().toISOString()})
+        .eq('id',id)
+        .eq('user_id',session.user.id);
+      if(error){console.warn('HS notification dismiss',error);return false}
+      return true;
+    }catch(e){console.warn('HS notification dismiss',e);return false}
+  }
   async function notifications(){
     if(localStorage.getItem('hs_test_client_mode')==='1'){
       const n=localStorage.getItem('hs_test_notification_v1');
