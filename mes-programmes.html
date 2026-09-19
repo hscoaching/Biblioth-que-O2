@@ -99,6 +99,7 @@ function saveProgram(){editing.name=document.getElementById('programName').value
 function startCustom(i,si=0){const p=structuredClone(programs[i]);p.selectedSession=si;localStorage.setItem('hs_custom_active_program',JSON.stringify(p));window.location.href='seance.html?custom=1'}
 programs=loadLocal();
 renderList();
+loadCoachPrograms();
 syncAccount();
 authClient.auth.onAuthStateChange(()=>syncAccount());
 </script>
