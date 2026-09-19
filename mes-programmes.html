@@ -38,7 +38,7 @@ const authClient=supabase.createClient(SUPA,KEY);
 let programs=[],exercises=[],editing=null,pickerSession=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(p){const r=await fetch(SUPA+'/rest/v1/'+p,{headers:{apikey:KEY,Authorization:'Bearer '+KEY,Accept:'application/json'},cache:'no-store'});if(!r.ok)throw Error(r.status);return r.json()}
-function loadLocal(){try{const x=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(x)?x:[]}catch{return[]}}
+function loadLocal(){try{const x=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(x))return[];return x.map(p=>{if(!p.sessions&&Array.isArray(p.days)){p.sessions=p.days.map((s,i)=>({id:s.id||'s_test_'+i,name:s.name||('Séance '+(i+1)),notes:s.notes||'',exercises:(s.exercises||[]).map((e,j)=>({...e,exercise_id:e.exercise_id||('test_ex_'+j)}))}));delete p.days}return p})}catch{return[]}}
 function persist(){localStorage.setItem(STORE,JSON.stringify(programs))}
 async function syncAccount(){
   const {data:{session}}=await authClient.auth.getSession();
