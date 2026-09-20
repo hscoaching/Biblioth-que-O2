@@ -9,5 +9,21 @@
 @media(max-width:650px){.hs-client-nav{margin:0 8px 0 auto;gap:3px;padding:3px}.hs-client-nav a{padding:7px 6px;font-size:9px}.hs-client-badge{right:8%}}
 `;document.head.appendChild(style);
   function mountNav(){if(document.querySelector('.hs-client-nav'))return;const top=document.querySelector('.topbar');const navEl=document.createElement('nav');navEl.className='hs-client-nav';nav.forEach(([href,label])=>{const a=document.createElement('a');a.href=href;a.textContent=label;if(href===path)a.className='active';navEl.appendChild(a)});if(top){top.appendChild(navEl)}else{document.body.insertBefore(navEl,document.body.firstChild)}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountNav);else mountNav();
+  async function protectTestMode(){
+    if(path!=='compte.html')return;
+    const testBox=document.getElementById('testAccess');
+    if(testBox)testBox.remove();
+    try{
+      const cfg=window.HS_SUPABASE_CONFIG;
+      if(!cfg||!window.supabase)return;
+      const sb=window.supabase.createClient(cfg.url,cfg.key);
+      const r=await sb.auth.getUser();
+      const user=r.data?.user;
+      if(!user){localStorage.removeItem('hs_test_client_mode');return}
+      const a=await sb.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();
+      if(!a.data)localStorage.removeItem('hs_test_client_mode');
+    }catch(e){localStorage.removeItem('hs_test_client_mode')}
+  }
+  function init(){mountNav();protectTestMode()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
