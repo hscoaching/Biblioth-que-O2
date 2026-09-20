@@ -21,9 +21,9 @@
 <button class="btn primary" onclick="login()">Se connecter</button>
 <div class="switch">Pas encore de compte ? <button onclick="showSignup()">Créer mon compte</button></div>
 <div class="switch"><button onclick="showReset()">Mot de passe oublié ?</button></div>
-<div style="margin-top:18px;padding-top:15px;border-top:1px solid #292929;text-align:center">
+<div id="testAccess" class="hidden" style="margin-top:18px;padding-top:15px;border-top:1px solid #292929;text-align:center">
 <button id="enterTestBtn" class="btn" type="button">🧪 Entrer en mode test client</button>
-<div style="color:#666;font-size:9px;line-height:1.4;margin-top:7px">Mode démonstration local : aucun vrai compte ni email nécessaire.</div>
+<div style="color:#666;font-size:9px;line-height:1.4;margin-top:7px">Mode démonstration réservé à l’administration HS Coaching.</div>
 </div>
 </div>
 <div id="signupBox" class="hidden">
@@ -61,12 +61,7 @@ function msg(t,type='error'){$('msg').textContent=t;$('msg').className='msg show
 function clearMsg(){$('msg').className='msg'}
 function isTestMode(){return localStorage.getItem('hs_test_client_mode')==='1'}
 function testProgram(){return {local_id:'test_program_1',name:'Programme test — Client',objective:'Démonstration',description:'Programme de démonstration HS Coaching',sessions:[{id:'test_session_1',name:'Séance 1',notes:'Séance de démonstration',exercises:[{exercise_id:'test_ex_1',name:'Développé couché',sets:3,reps:'8-10',rest:'90s'},{exercise_id:'test_ex_2',name:'Tirage vertical',sets:3,reps:'10-12',rest:'90s'},{exercise_id:'test_ex_3',name:'Curl haltères',sets:3,reps:'10-12',rest:'60s'}]}]}}
-function enterTestMode(){
-  localStorage.setItem('hs_test_client_mode','1');
-  const programs=readLocal(STORE_PROGRAMS);if(!programs.some(p=>p.local_id==='test_program_1'))programs.push(testProgram());saveLocal(STORE_PROGRAMS,programs);
-  const history=readLocal(STORE_HISTORY);if(!history.some(h=>h.local_id==='test_workout_1'))history.push({local_id:'test_workout_1',program_name:'Programme test — Client',session_name:'Séance 1',date:new Date(Date.now()-86400000).toISOString(),duration:52,exercises:[{name:'Développé couché',sets:[{weight:80,reps:10},{weight:80,reps:9},{weight:77.5,reps:10}]},{name:'Tirage vertical',sets:[{weight:65,reps:12},{weight:65,reps:11},{weight:60,reps:12}]}]});saveLocal(STORE_HISTORY,history);
-  render();
-}
+function enterTestMode(){localStorage.setItem('hs_test_client_mode','1');const programs=readLocal(STORE_PROGRAMS);if(!programs.some(p=>p.local_id==='test_program_1'))programs.push(testProgram());saveLocal(STORE_PROGRAMS,programs);const history=readLocal(STORE_HISTORY);if(!history.some(h=>h.local_id==='test_workout_1'))history.push({local_id:'test_workout_1',program_name:'Programme test — Client',session_name:'Séance 1',date:new Date(Date.now()-86400000).toISOString(),duration:52,exercises:[{name:'Développé couché',sets:[{weight:80,reps:10},{weight:80,reps:9},{weight:77.5,reps:10}]},{name:'Tirage vertical',sets:[{weight:65,reps:12},{weight:65,reps:11},{weight:60,reps:12}]}]});saveLocal(STORE_HISTORY,history);render()}
 function simulateTestProgram(){const programs=readLocal(STORE_PROGRAMS);if(!programs.some(p=>p.local_id==='test_program_2')){programs.unshift({local_id:'test_program_2',name:'Programme test — Nouveau',description:'Programme envoyé par Hugo pour la démonstration',days:[{name:'Séance 1',exercises:[{name:'Développé incliné',sets:4,reps:'8-10'},{name:'Rowing poulie',sets:4,reps:'8-10'}]}]});saveLocal(STORE_PROGRAMS,programs)}localStorage.setItem('hs_test_notification_v1',JSON.stringify({title:'Nouveau programme reçu',body:'Ton coach vient de t’envoyer un nouveau programme.'}));render();if(window.HSClientRefreshNotifications)window.HSClientRefreshNotifications()}
 function exitTestMode(){localStorage.removeItem('hs_test_client_mode');localStorage.removeItem('hs_test_notification_v1');location.reload()}
 function showLogin(){['signupBox','resetBox'].forEach(id=>$(id).classList.add('hidden'));$('loginBox').classList.remove('hidden');clearMsg()}
@@ -76,106 +71,26 @@ function readLocal(key){try{const v=JSON.parse(localStorage.getItem(key)||'[]');
 function saveLocal(key,value){localStorage.setItem(key,JSON.stringify(value))}
 function setSync(t){if($('syncStatus'))$('syncStatus').textContent=t}
 function localId(prefix){return prefix+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,9)}
-
-async function syncPrograms(user){
-  let local=readLocal(STORE_PROGRAMS);
-  for(const p of local){
-    if(!p.local_id)p.local_id=localId('program');
-    if(p.cloud_id){
-      const {error}=await client.from('client_programs').update({name:p.name||'Programme',data:p,updated_at:new Date().toISOString()}).eq('id',p.cloud_id).eq('user_id',user.id);
-      if(error) console.warn('programme update',error);
-      continue;
-    }
-    const {data,error}=await client.from('client_programs').insert({user_id:user.id,source_program_id:p.source_program_id||null,name:p.name||'Programme',data:p}).select('id').single();
-    if(!error&&data){p.cloud_id=data.id}
-    else if(error)console.warn('programme insert',error);
-  }
-  saveLocal(STORE_PROGRAMS,local);
-  const {data,error}=await client.from('client_programs').select('id,name,data,source_program_id,updated_at').eq('user_id',user.id).order('updated_at',{ascending:false});
-  if(error){console.warn('programme fetch',error);return local}
-  const cloud=Array.isArray(data)?data:[];
-  const byId=new Map(local.filter(p=>p.cloud_id).map(p=>[p.cloud_id,p]));
-  const merged=[...local];
-  for(const row of cloud){
-    if(byId.has(row.id))continue;
-    const p=(row.data&&typeof row.data==='object')?{...row.data}:{};
-    p.cloud_id=row.id;p.local_id=p.local_id||localId('program');p.name=p.name||row.name;
-    merged.push(p);
-  }
-  saveLocal(STORE_PROGRAMS,merged);
-  return merged;
-}
-
-async function syncHistory(user){
-  let local=readLocal(STORE_HISTORY);
-  const programs=readLocal(STORE_PROGRAMS);
-  for(const h of local){
-    if(!h.local_id)h.local_id=localId('workout');
-    if(h.cloud_id)continue;
-    const sourceId=h.program_id||h.source_program_id||null;
-    const linked=programs.find(p=>p.cloud_id&&(String(p.source_program_id||p.program_id||'')===String(sourceId))||p.cloud_id&&String(p.name||'')===String(h.program_name||h.program||''));
-    const payload={user_id:user.id,program_id:linked?.cloud_id||null,program_name:h.program||h.program_name||null,session_id:h.session_id||null,session_name:h.session_name||h.session||null,workout_date:h.date||h.workout_date||new Date().toISOString(),duration_minutes:h.duration||h.duration_minutes||null,data:h};
-    const {data,error}=await client.from('client_workouts').insert(payload).select('id').single();
-    if(!error&&data)h.cloud_id=data.id;
-    else if(error)console.warn('workout insert',error);
-  }
-  saveLocal(STORE_HISTORY,local);
-  const {data,error}=await client.from('client_workouts').select('id,data,program_name,session_name,workout_date,duration_minutes').eq('user_id',user.id).order('workout_date',{ascending:false});
-  if(error){console.warn('history fetch',error);return local}
-  const cloud=Array.isArray(data)?data:[];
-  const ids=new Set(local.map(h=>h.cloud_id).filter(Boolean));
-  const merged=[...local];
-  for(const row of cloud){
-    if(ids.has(row.id))continue;
-    const h=(row.data&&typeof row.data==='object')?{...row.data}:{};
-    h.cloud_id=row.id;h.local_id=h.local_id||localId('workout');
-    if(!h.date)h.date=row.workout_date;if(!h.program_name)h.program_name=row.program_name;if(!h.session_name)h.session_name=row.session_name;
-    merged.push(h);
-  }
-  saveLocal(STORE_HISTORY,merged);
-  return merged;
-}
-
-async function loadAssignedPrograms(user){
-  const box=$('assignedPrograms');if(!box)return;
-  const {data,error}=await client.from('client_programs').select('id,name,source_program_id,data,created_at,updated_at').eq('user_id',user.id).order('updated_at',{ascending:false});
-  if(error){box.innerHTML='<div class="note">Impossible de charger tes programmes attribués.</div>';return}
-  const rows=Array.isArray(data)?data:[];
-  box.innerHTML='<div style="font-size:9px;letter-spacing:1.5px;color:#666;font-weight:900;margin-bottom:8px">PROGRAMMES DE TON COACH</div>'+
-    (rows.length?rows.map(r=>'<div style="background:#101010;border:1px solid #292929;border-radius:11px;padding:12px;margin-top:7px"><div style="font-size:12px;font-weight:900">'+String(r.name||'Programme').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</div><div style="font-size:9px;color:#666;margin-top:4px">Attribué le '+new Date(r.created_at).toLocaleDateString('fr-FR')+'</div><a class="btn primary" style="display:block;text-align:center;text-decoration:none;padding-top:12px;margin-top:9px" href="programmes.html?assigned='+encodeURIComponent(r.id)+'">Ouvrir le programme →</a></div>').join(''):'<div class="note">Aucun programme attribué pour le moment.</div>');
-}
-async function syncLocal(user){
-  setSync('Synchronisation de tes données…');
-  const programs=await syncPrograms(user);
-  const history=await syncHistory(user);
-  await loadAssignedPrograms(user);
-  $('programCount').textContent=programs.length;
-  $('historyCount').textContent=history.length;
-  setSync('✓ Données synchronisées');
-}
-
+async function isAdminUser(user){if(!user)return false;const {data,error}=await client.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();return !error&&!!data}
+async function syncPrograms(user){let local=readLocal(STORE_PROGRAMS);for(const p of local){if(!p.local_id)p.local_id=localId('program');if(p.cloud_id){const {error}=await client.from('client_programs').update({name:p.name||'Programme',data:p,updated_at:new Date().toISOString()}).eq('id',p.cloud_id).eq('user_id',user.id);if(error)console.warn('programme update',error);continue}const {data,error}=await client.from('client_programs').insert({user_id:user.id,source_program_id:p.source_program_id||null,name:p.name||'Programme',data:p}).select('id').single();if(!error&&data)p.cloud_id=data.id;else if(error)console.warn('programme insert',error)}saveLocal(STORE_PROGRAMS,local);const {data,error}=await client.from('client_programs').select('id,name,data,source_program_id,updated_at').eq('user_id',user.id).order('updated_at',{ascending:false});if(error){console.warn('programme fetch',error);return local}const cloud=Array.isArray(data)?data:[],byId=new Map(local.filter(p=>p.cloud_id).map(p=>[p.cloud_id,p])),merged=[...local];for(const row of cloud){if(byId.has(row.id))continue;const p=(row.data&&typeof row.data==='object')?{...row.data}:{};p.cloud_id=row.id;p.local_id=p.local_id||localId('program');p.name=p.name||row.name;merged.push(p)}saveLocal(STORE_PROGRAMS,merged);return merged}
+async function syncHistory(user){let local=readLocal(STORE_HISTORY);const programs=readLocal(STORE_PROGRAMS);for(const h of local){if(!h.local_id)h.local_id=localId('workout');if(h.cloud_id)continue;const sourceId=h.program_id||h.source_program_id||null;const linked=programs.find(p=>p.cloud_id&&(String(p.source_program_id||p.program_id||'')===String(sourceId))||p.cloud_id&&String(p.name||'')===String(h.program_name||h.program||''));const payload={user_id:user.id,program_id:linked?.cloud_id||null,program_name:h.program||h.program_name||null,session_id:h.session_id||null,session_name:h.session_name||h.session||null,workout_date:h.date||h.workout_date||new Date().toISOString(),duration_minutes:h.duration||h.duration_minutes||null,data:h};const {data,error}=await client.from('client_workouts').insert(payload).select('id').single();if(!error&&data)h.cloud_id=data.id;else if(error)console.warn('workout insert',error)}saveLocal(STORE_HISTORY,local);const {data,error}=await client.from('client_workouts').select('id,data,program_name,session_name,workout_date,duration_minutes').eq('user_id',user.id).order('workout_date',{ascending:false});if(error){console.warn('history fetch',error);return local}const cloud=Array.isArray(data)?data:[],ids=new Set(local.map(h=>h.cloud_id).filter(Boolean)),merged=[...local];for(const row of cloud){if(ids.has(row.id))continue;const h=(row.data&&typeof row.data==='object')?{...row.data}:{};h.cloud_id=row.id;h.local_id=h.local_id||localId('workout');if(!h.date)h.date=row.workout_date;if(!h.program_name)h.program_name=row.program_name;if(!h.session_name)h.session_name=row.session_name;merged.push(h)}saveLocal(STORE_HISTORY,merged);return merged}
+async function loadAssignedPrograms(user){const box=$('assignedPrograms');if(!box)return;const {data,error}=await client.from('client_programs').select('id,name,source_program_id,data,created_at,updated_at').eq('user_id',user.id).order('updated_at',{ascending:false});if(error){box.innerHTML='<div class="note">Impossible de charger tes programmes attribués.</div>';return}const rows=Array.isArray(data)?data:[];box.innerHTML='<div style="font-size:9px;letter-spacing:1.5px;color:#666;font-weight:900;margin-bottom:8px">PROGRAMMES DE TON COACH</div>'+(rows.length?rows.map(r=>'<div style="background:#101010;border:1px solid #292929;border-radius:11px;padding:12px;margin-top:7px"><div style="font-size:12px;font-weight:900">'+String(r.name||'Programme').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</div><div style="font-size:9px;color:#666;margin-top:4px">Attribué le '+new Date(r.created_at).toLocaleDateString('fr-FR')+'</div><a class="btn primary" style="display:block;text-align:center;text-decoration:none;padding-top:12px;margin-top:9px" href="programmes.html?assigned='+encodeURIComponent(r.id)+'">Ouvrir le programme →</a></div>').join(''):'<div class="note">Aucun programme attribué pour le moment.</div>')}
+async function syncLocal(user){setSync('Synchronisation de tes données…');const programs=await syncPrograms(user),history=await syncHistory(user);await loadAssignedPrograms(user);$('programCount').textContent=programs.length;$('historyCount').textContent=history.length;setSync('✓ Données synchronisées')}
 async function login(){clearMsg();const email=$('loginEmail').value.trim(),password=$('loginPassword').value;if(!email||!password)return msg('Renseigne ton email et ton mot de passe.');const {error}=await client.auth.signInWithPassword({email,password});if(error)return msg(error.message);await render()}
 async function signup(){clearMsg();const name=$('signupName').value.trim(),email=$('signupEmail').value.trim(),password=$('signupPassword').value;if(!email||!password)return msg('Renseigne ton email et ton mot de passe.');if(password.length<8)return msg('Choisis un mot de passe d’au moins 8 caractères.');const {data,error}=await client.auth.signUp({email,password,options:{data:{first_name:name}}});if(error)return msg(error.message);if(data.session){msg('Compte créé. Bienvenue dans HS Coaching 💪','ok');await render()}else msg('Compte créé. Vérifie ton email pour confirmer ton compte avant de te connecter.','ok')}
 async function resetPassword(){clearMsg();const email=$('resetEmail').value.trim();if(!email)return msg('Renseigne ton email.');const redirect=location.origin+location.pathname;const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:redirect});if(error)return msg(error.message);msg('Si cette adresse correspond à un compte, un email de réinitialisation va être envoyé.','ok')}
-async function logout(){await client.auth.signOut();await render()}
+async function logout(){await client.auth.signOut();localStorage.removeItem('hs_test_client_mode');await render()}
 async function render(){
-  if(isTestMode()){
-    $('authCard').classList.add('hidden');$('accountCard').classList.remove('hidden');
-    $('accountName').textContent='Client Test 🧪';$('accountEmail').textContent='Mode démonstration — aucun compte réel';
-    const p=readLocal(STORE_PROGRAMS),h=readLocal(STORE_HISTORY);$('programCount').textContent=p.length;$('historyCount').textContent=h.length;setSync('🧪 Mode test client actif');
-    const note=document.querySelector('#accountCard .note');if(note)note.innerHTML='Tu es dans un environnement de démonstration. Les données de test restent uniquement sur cet appareil.';
-    let testProgramBtn=document.getElementById('testProgramBtn');if(!testProgramBtn){testProgramBtn=document.createElement('button');testProgramBtn.id='testProgramBtn';testProgramBtn.className='btn primary';testProgramBtn.textContent='🧪 Simuler un programme reçu';testProgramBtn.onclick=simulateTestProgram;$('accountCard').appendChild(testProgramBtn)}
-let testBtn=document.getElementById('exitTestBtn');if(!testBtn){testBtn=document.createElement('button');testBtn.id='exitTestBtn';testBtn.className='btn';testBtn.textContent='Quitter le mode test';testBtn.onclick=exitTestMode;$('accountCard').appendChild(testBtn)}
-    return;
-  }
   const {data}=await client.auth.getSession();const session=data.session;
+  const user=session?.user||null;
+  const admin=await isAdminUser(user);
+  const testAccess=$('testAccess');if(testAccess)testAccess.classList.toggle('hidden',!admin);
+  if(!admin&&isTestMode()){localStorage.removeItem('hs_test_client_mode');localStorage.removeItem('hs_test_notification_v1')}
+  if(admin&&isTestMode()){
+    $('authCard').classList.add('hidden');$('accountCard').classList.remove('hidden');$('accountName').textContent='Client Test 🧪';$('accountEmail').textContent='Mode démonstration — aucun compte réel';const p=readLocal(STORE_PROGRAMS),h=readLocal(STORE_HISTORY);$('programCount').textContent=p.length;$('historyCount').textContent=h.length;setSync('🧪 Mode test client actif');const note=document.querySelector('#accountCard .note');if(note)note.innerHTML='Tu es dans un environnement de démonstration. Les données de test restent uniquement sur cet appareil.';let testProgramBtn=document.getElementById('testProgramBtn');if(!testProgramBtn){testProgramBtn=document.createElement('button');testProgramBtn.id='testProgramBtn';testProgramBtn.className='btn primary';testProgramBtn.textContent='🧪 Simuler un programme reçu';testProgramBtn.onclick=simulateTestProgram;$('accountCard').appendChild(testProgramBtn)}let testBtn=document.getElementById('exitTestBtn');if(!testBtn){testBtn=document.createElement('button');testBtn.id='exitTestBtn';testBtn.className='btn';testBtn.textContent='Quitter le mode test';testBtn.onclick=exitTestMode;$('accountCard').appendChild(testBtn)}return;
+  }
   if(!session){$('authCard').classList.remove('hidden');$('accountCard').classList.add('hidden');return}
-  const user=session.user;
-  $('authCard').classList.add('hidden');$('accountCard').classList.remove('hidden');
-  $('accountName').textContent='Bonjour '+(user.user_metadata?.first_name||'👋');$('accountEmail').textContent=user.email||'';
-  const localPrograms=readLocal(STORE_PROGRAMS),localHistory=readLocal(STORE_HISTORY);
-  $('programCount').textContent=localPrograms.length;$('historyCount').textContent=localHistory.length;
-  await syncLocal(user);
+  $('authCard').classList.add('hidden');$('accountCard').classList.remove('hidden');$('accountName').textContent='Bonjour '+(user.user_metadata?.first_name||'👋');$('accountEmail').textContent=user.email||'';const localPrograms=readLocal(STORE_PROGRAMS),localHistory=readLocal(STORE_HISTORY);$('programCount').textContent=localPrograms.length;$('historyCount').textContent=localHistory.length;await syncLocal(user)
 }
 client.auth.onAuthStateChange(()=>{render()});
 function initAccountPage(){const b=$('enterTestBtn');if(b)b.addEventListener('click',enterTestMode);render()}
