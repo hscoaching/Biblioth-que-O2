@@ -39,6 +39,7 @@ function autoFrName(name){let s=String(name||'');FR_WORDS.forEach(([r,v])=>s=s.r
 function frOverride(e){const key=String(e.name_en||e.name||'').toLowerCase();return typeof HS_FR!=='undefined'&&HS_FR[key]?HS_FR[key]:null}
 function translatedExercise(e){const fr=frOverride(e);return {name:fr?.name||autoFrName(e.name_fr||e.name_en),description:fr?.description||autoFrText(e.description_fr||e.description_en||'Exercice de renforcement musculaire.'),instructions:fr?.instructions||(e.instructions_fr||e.instructions_en||[]).map(autoFrText),tips:fr?.tips||(e.tips_fr||e.tips_en||[]).map(autoFrText)}}
 function mediaHtml(e,modalView=false){const imgs=e.images||{};const flat=imgs.flat||{};const a=imageUrl(flat.start||flat.main);const b=imageUrl(flat.peak);if(!a)return '';if(b)return `<div class="media-frame media-pair ${modalView?'modal-media':''}"><img class="media-a" src="${a}" alt="Position de départ — ${e.name}" loading="lazy"><img class="media-b" src="${b}" alt="Position finale — ${e.name}" loading="lazy"></div>`;return `<div class="media-frame ${modalView?'modal-media':''}"><img src="${a}" alt="Illustration — ${e.name}" loading="lazy"></div>`}
+function cleanCategoryButtons(){if(!categoriesEl)return;const seen=new Set();categoriesEl.querySelectorAll('button').forEach(b=>{const label=b.textContent.trim();if(label==='Fessiers'&&b.classList.contains('chip')&&!b.classList.contains('subchip')){b.remove();return}if(b.classList.contains('subchip')){const key=label.toLowerCase();if(seen.has(key))b.remove();else seen.add(key)}})}
 function renderCategories(){
   const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos','full','cardio','mobilite'];
   const main=wanted.map(c=>`<button class="chip ${category===c?'active':''}" data-category="${c}">${categoryNames[c]}</button>`).join('');
@@ -47,6 +48,7 @@ function renderCategories(){
   categoriesEl.innerHTML=`<div class="main-categories">${main}</div>${subHtml}`;
   categoriesEl.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>{category=b.dataset.category;muscleFilter='all';visibleLimit=PAGE_SIZE;renderCategories();render()});
   categoriesEl.querySelectorAll('[data-muscle]').forEach(b=>b.onclick=()=>{muscleFilter=b.dataset.muscle;visibleLimit=PAGE_SIZE;renderCategories();render()});
+  cleanCategoryButtons();
 }
 const PAGE_SIZE=48;
 let visibleLimit=PAGE_SIZE;
@@ -70,7 +72,7 @@ function filteredList(){
   const q=search.value.trim().toLowerCase();
   return exercises.filter(e=>{
     const hay=[e.name,e.name_en,e.description,...(e.muscles||[]),e.equipmentLabel,e.bodyPartLabel,...(e.tags||[])].join(' ').toLowerCase();
-    const muscles=e.muscles||[]; const muscleOk=muscleFilter==='all'||(category==='pectoraux'&&['chest_upper','chest_middle','chest_lower'].includes(muscleFilter)?chestZone(e)===muscleFilter:muscleFilter==='glutes'?(muscles.includes('glutes')||muscles.includes('gluteus_maximus')):muscleFilter==='forearms'?(muscles.includes('forearms')||muscles.includes('brachioradialis')||muscles.includes('brachialis')):muscles.includes(muscleFilter)); return (category==='all'||categoryFor(e)===category)&&muscleOk&&(!q||hay.includes(q));
+    const muscles=e.muscles||[]; const muscleOk=muscleFilter==='all'||(category==='pectoraux'&&['chest_upper','chest_middle','chest_lower'].includes(muscleFilter)?chestZone(e)===muscleFilter:muscles.includes(muscleFilter)); return (category==='all'||categoryFor(e)===category)&&muscleOk&&(!q||hay.includes(q));
   });
 }
 function ensureLoadMore(){
@@ -101,7 +103,7 @@ function normalizeExercises(list){
   return (list||[]).map(e=>{
     const cat=categoryFor(e);
     const tr=translatedExercise(e);
-    return {...e,id:e.id||slugify(e.name_en||e.name),name:tr.name,description:tr.description,instructions:tr.instructions,tips:tr.tips,muscles:[...(e.primary_muscles||[]),...(e.secondary_muscles||[])],equipmentLabel:String(e.equipment||'Poids du corps').replace(/_/g,' '),bodyPartLabel:cat};
+    return {...e,id:e.id||slugify(e.name_en||e.name),name:tr.name,description:tr.description,instructions:tr.instructions,tips:tr.tips,muscles:[...(e.primary_muscles||[]),...(e.secondary_muscles||[])].flatMap(m=>{const x=String(m);const map={biceps_brachii:'biceps',triceps_brachii:'triceps',posterior_deltoid:'rear_deltoid',forearm_flexors:'forearms',forearm_extensors:'forearms',brachioradialis:'forearms',brachialis:'biceps',gastrocnemius:'calves',soleus:'calves',gluteus_maximus:'glutes'};return [x,map[x]].filter(Boolean)}),equipmentLabel:String(e.equipment||'Poids du corps').replace(/_/g,' '),bodyPartLabel:cat};
   });
 }
 async function loadLibrary(){
@@ -144,4 +146,4 @@ async function refreshLibrary(initial=false){
     console.warn('HS Coaching: actualisation différée impossible',err);
   }
 }
-let searchTimer;search.oninput=()=>{clearTimeout(searchTimer);visibleLimit=PAGE_SIZE;searchTimer=setTimeout(render,120)};document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});loadLibrary();
+let searchTimer;search.oninput=()=>{clearTimeout(searchTimer);visibleLimit=PAGE_SIZE;searchTimer=setTimeout(render,120)};document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});const categoryObserver=new MutationObserver(()=>cleanCategoryButtons());if(categoriesEl)categoryObserver.observe(categoriesEl,{childList:true,subtree:true});loadLibrary();
