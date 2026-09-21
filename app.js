@@ -15,7 +15,7 @@ const muscleNames={quadriceps:'Quadriceps',hamstrings:'Ischio-jambiers',gluteus_
 const muscleFilters={
   jambes:[['all','Tous'],['quadriceps','Quadriceps'],['hamstrings','Ischio-jambiers'],['glutes','Fessiers'],['gluteus_maximus','Fessiers'],['calves','Mollets'],['adductors','Adducteurs'],['abductors','Abducteurs']],
   dos:[['all','Tous'],['latissimus_dorsi','Grand dorsal'],['trapezius','Trapèzes'],['rhomboids','Rhomboïdes']],
-  pectoraux:[['all','Tous'],['pectoralis_major','Pectoraux'],['pectoralis_minor','Pectoraux']],
+  pectoraux:[['all','Tous'],['chest_upper','Haut'],['chest_middle','Milieu'],['chest_lower','Bas']],
   epaules:[['all','Tous'],['anterior_deltoid','Épaule avant'],['lateral_deltoid','Épaule latérale'],['rear_deltoid','Épaule arrière']],
   bras:[['all','Tous'],['biceps','Biceps'],['triceps','Triceps'],['forearms','Avant-bras']],
   abdos:[['all','Tous'],['rectus_abdominis','Abdominaux'],['obliques','Obliques']]
@@ -24,6 +24,12 @@ let muscleFilter='all';
 function labelMuscle(m){return muscleNames[m]||String(m).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
 function categoryFor(e){return bodyMap[e.body_part]||'mobilite'}
 function categoryLabel(e){return categoryNames[categoryFor(e)]||'Autre'}
+function chestZone(e){
+  const s=String(e.name_en||e.name||'').toLowerCase();
+  if(/incline|inclined|low[- ]to[- ]high|low cable.*fly|incline.*fly|incline.*press/.test(s))return 'chest_upper';
+  if(/decline|declined|high[- ]to[- ]low|high cable.*fly|decline.*fly|decline.*press|dip[s]?\b/.test(s))return 'chest_lower';
+  return 'chest_middle';
+}
 function imageUrl(path){return path?new URL(path,MEDIA_BASE).href:''}
 function slugify(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 const FR_WORDS=[[/\bbarbell\b/gi,'barre'],[/\bdumbbell\b/gi,'haltère'],[/\bkettlebell\b/gi,'kettlebell'],[/\bcable\b/gi,'poulie'],[/\bmachine\b/gi,'machine'],[/\bbodyweight\b/gi,'poids du corps'],[/\bweighted\b/gi,'lesté'],[/\bassisted\b/gi,'assisté'],[/\bband\b/gi,'élastique'],[/\bplate\b/gi,'disque'],[/\bbench\b/gi,'banc'],[/\bsquat\b/gi,'squat'],[/\bdeadlift\b/gi,'soulevé de terre'],[/\bpress\b/gi,'développé'],[/\brow\b/gi,'rowing'],[/\bcurl\b/gi,'curl'],[/\bextension\b/gi,'extension'],[/\braise\b/gi,'élévation'],[/\bpulldown\b/gi,'tirage vertical'],[/\bpull[- ]?up[s]?\b/gi,'traction'],[/\bpush[- ]?up[s]?\b/gi,'pompe'],[/\bdip[s]?\b/gi,'dip'],[/\blunge[s]?\b/gi,'fente'],[/\bfly\b/gi,'écarté'],[/\bcrunch\b/gi,'crunch'],[/\bplank\b/gi,'gainage'],[/\bcalf raise\b/gi,'élévation des mollets'],[/\bleg\b/gi,'jambe'],[/\bshoulder[s]?\b/gi,'épaule'],[/\bchest\b/gi,'pectoraux'],[/\bback\b/gi,'dos'],[/\bupper\b/gi,'supérieur'],[/\blower\b/gi,'inférieur'],[/\bclose grip\b/gi,'prise serrée'],[/\bwide grip\b/gi,'prise large'],[/\breverse grip\b/gi,'prise supination'],[/\bneutral grip\b/gi,'prise neutre'],[/\boverhead\b/gi,'au-dessus de la tête'],[/\bseated\b/gi,'assis'],[/\bstanding\b/gi,'debout'],[/\bsingle arm\b/gi,'unilatéral'],[/\bone arm\b/gi,'à un bras'],[/\bone leg\b/gi,'à une jambe'],[/\blying\b/gi,'allongé'],[/\bfront\b/gi,'avant'],[/\blateral\b/gi,'latéral'],[/\brear\b/gi,'arrière'],[/\bfront raise\b/gi,'élévation frontale'],[/\blateral raise\b/gi,'élévation latérale'],[/\bromanian\b/gi,'roumain'],[/\bbulgarian\b/gi,'bulgare'],[/\bhack\b/gi,'hack'],[/\bhip thrust\b/gi,'hip thrust'],[/\bglute bridge\b/gi,'pont fessier'],[/\bshrug[s]?\b/gi,'haussement d’épaules'],[/\bface pull\b/gi,'tirage visage'],[/\bpushdown\b/gi,'extension à la poulie'],[/\btriceps\b/gi,'triceps'],[/\bbiceps\b/gi,'biceps'],[/\bforearm[s]?\b/gi,'avant-bras'],[/\babs?\b/gi,'abdominaux'],[/\bcore\b/gi,'gainage'],[/\bcardio\b/gi,'cardio'],[/\bcalf\b/gi,'mollet'],[/\bhamstring[s]?\b/gi,'ischio-jambiers'],[/\bquad[s]?\b/gi,'quadriceps'],[/\bglute[s]?\b/gi,'fessiers'],[/\badductor[s]?\b/gi,'adducteurs'],[/\babductor[s]?\b/gi,'abducteurs']];
@@ -64,7 +70,7 @@ function filteredList(){
   const q=search.value.trim().toLowerCase();
   return exercises.filter(e=>{
     const hay=[e.name,e.name_en,e.description,...(e.muscles||[]),e.equipmentLabel,e.bodyPartLabel,...(e.tags||[])].join(' ').toLowerCase();
-    const muscles=e.muscles||[]; const muscleOk=muscleFilter==='all'||muscles.includes(muscleFilter); return (category==='all'||categoryFor(e)===category)&&muscleOk&&(!q||hay.includes(q));
+    const muscles=e.muscles||[]; const muscleOk=muscleFilter==='all'||(category==='pectoraux'&&['chest_upper','chest_middle','chest_lower'].includes(muscleFilter)?chestZone(e)===muscleFilter:muscles.includes(muscleFilter)); return (category==='all'||categoryFor(e)===category)&&muscleOk&&(!q||hay.includes(q));
   });
 }
 function ensureLoadMore(){
