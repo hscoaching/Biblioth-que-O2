@@ -43,7 +43,7 @@ function renderCategories(){
   const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos','full','cardio','mobilite'];
   const main=wanted.map(c=>`<button class="chip ${category===c?'active':''}" data-category="${c}">${categoryNames[c]}</button>`).join('');
   const subs=muscleFilters[category]||[];
-  const subHtml=subs.length?`<div class="subcategories" aria-label="Filtrer par muscle">${subs.filter((v,i,a)=>a.findIndex(x=>x[0]===v[0])===i).map(([key,label])=>`<button class="chip subchip ${muscleFilter===key?'active':''}" data-muscle="${key}">${label}</button>`).join('')}</div>`:'';
+  const subHtml=subs.length?`<div class="subcategories" aria-label="Filtrer par muscle">${subs.filter((v,i,a)=>a.findIndex(x=>x[1]===v[1])===i).map(([key,label])=>`<button class="chip subchip ${muscleFilter===key?'active':''}" data-muscle="${key}">${label}</button>`).join('')}</div>`:'';
   categoriesEl.innerHTML=`<div class="main-categories">${main}</div>${subHtml}`;
   categoriesEl.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>{category=b.dataset.category;muscleFilter='all';visibleLimit=PAGE_SIZE;renderCategories();render()});
   categoriesEl.querySelectorAll('[data-muscle]').forEach(b=>b.onclick=()=>{muscleFilter=b.dataset.muscle;visibleLimit=PAGE_SIZE;renderCategories();render()});
