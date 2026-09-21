@@ -70,7 +70,7 @@ function filteredList(){
   const q=search.value.trim().toLowerCase();
   return exercises.filter(e=>{
     const hay=[e.name,e.name_en,e.description,...(e.muscles||[]),e.equipmentLabel,e.bodyPartLabel,...(e.tags||[])].join(' ').toLowerCase();
-    const muscles=e.muscles||[]; const muscleOk=muscleFilter==='all'||(category==='pectoraux'&&['chest_upper','chest_middle','chest_lower'].includes(muscleFilter)?chestZone(e)===muscleFilter:muscles.includes(muscleFilter)); return (category==='all'||categoryFor(e)===category)&&muscleOk&&(!q||hay.includes(q));
+    const muscles=e.muscles||[]; const muscleOk=muscleFilter==='all'||(category==='pectoraux'&&['chest_upper','chest_middle','chest_lower'].includes(muscleFilter)?chestZone(e)===muscleFilter:muscleFilter==='glutes'?(muscles.includes('glutes')||muscles.includes('gluteus_maximus')):muscleFilter==='forearms'?(muscles.includes('forearms')||muscles.includes('brachioradialis')||muscles.includes('brachialis')):muscles.includes(muscleFilter)); return (category==='all'||categoryFor(e)===category)&&muscleOk&&(!q||hay.includes(q));
   });
 }
 function ensureLoadMore(){
