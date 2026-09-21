@@ -12,6 +12,15 @@ const categoriesEl=document.querySelector('.categories');
 const categoryNames={all:'Tous',jambes:'Jambes',dos:'Dos',pectoraux:'Pectoraux',epaules:'Épaules',bras:'Bras',abdos:'Abdos',full:'Full body',cardio:'Cardio',mobilite:'Mobilité'};
 const bodyMap={upper_legs:'jambes',lower_legs:'jambes',back:'dos',chest:'pectoraux',shoulders:'epaules',upper_arms:'bras',lower_arms:'bras',core:'abdos',full_body:'full',cardio:'cardio',neck:'mobilite'};
 const muscleNames={quadriceps:'Quadriceps',hamstrings:'Ischio-jambiers',gluteus_maximus:'Grand fessier',glutes:'Fessiers',calves:'Mollets',adductors:'Adducteurs',abductors:'Abducteurs',latissimus_dorsi:'Grand dorsal',trapezius:'Trapèzes',rhomboids:'Rhomboïdes',erector_spinae:'Érecteurs du rachis',lower_back:'Lombaires',pectoralis_major:'Grand pectoral',pectoralis_minor:'Petit pectoral',deltoids:'Deltoïdes',anterior_deltoid:'Deltoïde antérieur',lateral_deltoid:'Deltoïde moyen',rear_deltoid:'Deltoïde postérieur',biceps:'Biceps',brachialis:'Brachial',triceps:'Triceps',forearms:'Avant-bras',rectus_abdominis:'Grand droit',obliques:'Obliques',transverse_abdominis:'Transverse',core:'Ceinture abdominale',hip_flexors:'Fléchisseurs de hanche',serratus_anterior:'Dentelé antérieur',rotator_cuff:'Coiffe des rotateurs',tibialis_anterior:'Tibial antérieur',neck:'Cou'};
+const muscleFilters={
+  jambes:[['all','Tous'],['quadriceps','Quadriceps'],['hamstrings','Ischio-jambiers'],['glutes','Fessiers'],['gluteus_maximus','Fessiers'],['calves','Mollets'],['adductors','Adducteurs'],['abductors','Abducteurs']],
+  dos:[['all','Tous'],['latissimus_dorsi','Grand dorsal'],['trapezius','Trapèzes'],['rhomboids','Rhomboïdes']],
+  pectoraux:[['all','Tous'],['pectoralis_major','Pectoraux'],['pectoralis_minor','Pectoraux']],
+  epaules:[['all','Tous'],['anterior_deltoid','Épaule avant'],['lateral_deltoid','Épaule latérale'],['rear_deltoid','Épaule arrière']],
+  bras:[['all','Tous'],['biceps','Biceps'],['triceps','Triceps'],['forearms','Avant-bras']],
+  abdos:[['all','Tous'],['rectus_abdominis','Abdominaux'],['obliques','Obliques']]
+};
+let muscleFilter='all';
 function labelMuscle(m){return muscleNames[m]||String(m).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
 function categoryFor(e){return bodyMap[e.body_part]||'mobilite'}
 function categoryLabel(e){return categoryNames[categoryFor(e)]||'Autre'}
@@ -24,7 +33,15 @@ function autoFrName(name){let s=String(name||'');FR_WORDS.forEach(([r,v])=>s=s.r
 function frOverride(e){const key=String(e.name_en||e.name||'').toLowerCase();return typeof HS_FR!=='undefined'&&HS_FR[key]?HS_FR[key]:null}
 function translatedExercise(e){const fr=frOverride(e);return {name:fr?.name||autoFrName(e.name_fr||e.name_en),description:fr?.description||autoFrText(e.description_fr||e.description_en||'Exercice de renforcement musculaire.'),instructions:fr?.instructions||(e.instructions_fr||e.instructions_en||[]).map(autoFrText),tips:fr?.tips||(e.tips_fr||e.tips_en||[]).map(autoFrText)}}
 function mediaHtml(e,modalView=false){const imgs=e.images||{};const flat=imgs.flat||{};const a=imageUrl(flat.start||flat.main);const b=imageUrl(flat.peak);if(!a)return '';if(b)return `<div class="media-frame media-pair ${modalView?'modal-media':''}"><img class="media-a" src="${a}" alt="Position de départ — ${e.name}" loading="lazy"><img class="media-b" src="${b}" alt="Position finale — ${e.name}" loading="lazy"></div>`;return `<div class="media-frame ${modalView?'modal-media':''}"><img src="${a}" alt="Illustration — ${e.name}" loading="lazy"></div>`}
-function renderCategories(){const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos','full','cardio','mobilite'];categoriesEl.innerHTML=wanted.map(c=>`<button class="chip ${category===c?'active':''}" data-category="${c}">${categoryNames[c]}</button>`).join('');categoriesEl.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{category=b.dataset.category;renderCategories();render()})}
+function renderCategories(){
+  const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos','full','cardio','mobilite'];
+  const main=wanted.map(c=>`<button class="chip ${category===c?'active':''}" data-category="${c}">${categoryNames[c]}</button>`).join('');
+  const subs=muscleFilters[category]||[];
+  const subHtml=subs.length?`<div class="subcategories" aria-label="Filtrer par muscle">${subs.filter((v,i,a)=>a.findIndex(x=>x[0]===v[0])===i).map(([key,label])=>`<button class="chip subchip ${muscleFilter===key?'active':''}" data-muscle="${key}">${label}</button>`).join('')}</div>`:'';
+  categoriesEl.innerHTML=`<div class="main-categories">${main}</div>${subHtml}`;
+  categoriesEl.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>{category=b.dataset.category;muscleFilter='all';visibleLimit=PAGE_SIZE;renderCategories();render()});
+  categoriesEl.querySelectorAll('[data-muscle]').forEach(b=>b.onclick=()=>{muscleFilter=b.dataset.muscle;visibleLimit=PAGE_SIZE;renderCategories();render()});
+}
 const PAGE_SIZE=48;
 let visibleLimit=PAGE_SIZE;
 let filteredExercises=[];
@@ -47,7 +64,7 @@ function filteredList(){
   const q=search.value.trim().toLowerCase();
   return exercises.filter(e=>{
     const hay=[e.name,e.name_en,e.description,...(e.muscles||[]),e.equipmentLabel,e.bodyPartLabel,...(e.tags||[])].join(' ').toLowerCase();
-    return (category==='all'||categoryFor(e)===category)&&(!q||hay.includes(q));
+    const muscles=e.muscles||[]; const muscleOk=muscleFilter==='all'||muscles.includes(muscleFilter); return (category==='all'||categoryFor(e)===category)&&muscleOk&&(!q||hay.includes(q));
   });
 }
 function ensureLoadMore(){
