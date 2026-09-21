@@ -82,3 +82,85 @@
   installArmButtons();
   loadMuscles();
 })();
+
+// Filtre Fessiers : disponible comme filtre principal et basé sur les muscles réels du catalogue.
+(function () {
+  const categories = document.querySelector('.categories');
+  const grid = document.querySelector('#exercise-grid');
+  if (!categories || !grid) return;
+
+  let selected = false;
+  let muscleById = new Map();
+  let ready = false;
+
+  async function load() {
+    try {
+      const res = await fetch('https://exercise-dataset.com/exercises.json');
+      const data = await res.json();
+      (Array.isArray(data) ? data : data.exercises || []).forEach(e => {
+        const id = String(e.id ?? '');
+        if (id) muscleById.set(id, (e.muscles || []).map(m => String(m).toLowerCase()));
+      });
+    } catch (_) {}
+    ready = true;
+    apply();
+  }
+
+  function isGlute(muscles) {
+    return muscles.some(m => /^(glutes?|gluteus(_maximus|_medius|_minimus)?|gluteus_maximus)$/.test(m) || m.includes('glute'));
+  }
+
+  function apply() {
+    requestAnimationFrame(() => {
+      if (!selected || !ready) return;
+      const cards = [...grid.querySelectorAll('.card')];
+      cards.forEach(card => {
+        const muscles = muscleById.get(String(card.dataset.id || '')) || [];
+        card.style.display = isGlute(muscles) ? '' : 'none';
+      });
+      const visible = cards.filter(c => c.style.display !== 'none').length;
+      const count = document.querySelector('#count');
+      if (count) count.textContent = `${visible} exercice${visible > 1 ? 's' : ''}`;
+      const empty = document.querySelector('#empty');
+      if (empty) empty.hidden = visible !== 0;
+    });
+  }
+
+  function install() {
+    if (categories.querySelector('.hs-glute-filter')) return;
+    const legs = categories.querySelector('[data-category="jambes"]');
+    if (!legs) return;
+    const b = document.createElement('button');
+    b.className = 'chip hs-glute-filter';
+    b.type = 'button';
+    b.textContent = 'Fessiers';
+    b.dataset.category = 'fessiers';
+    b.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      selected = !selected;
+      categories.querySelectorAll('.hs-glute-filter').forEach(x => x.classList.toggle('active', selected));
+      if (selected) {
+        categories.querySelectorAll('.chip').forEach(x => { if (x !== b) x.classList.remove('active'); });
+        legs.click();
+        setTimeout(apply, 30);
+      } else {
+        legs.click();
+      }
+    });
+    legs.after(b);
+  }
+
+  const observer = new MutationObserver(() => { install(); if (selected) apply(); });
+  observer.observe(categories, { childList: true, subtree: true });
+  observer.observe(grid, { childList: true, subtree: true });
+  categories.addEventListener('click', e => {
+    if (!e.target.closest('.hs-glute-filter')) {
+      selected = false;
+      categories.querySelectorAll('.hs-glute-filter').forEach(x => x.classList.remove('active'));
+    }
+  }, true);
+
+  install();
+  load();
+})();
