@@ -48,36 +48,20 @@
 <!-- Librairies tierces : defer, exécutées dans l'ordre d'apparition -->
 <script defer src="https://cdn.jsdelivr.net/npm/@Supabase/supabase-js@2"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script defer src="client-ui.js"></script>
 
-<!-- Traductions manuelles (fiches éditoriales prioritaires) -->
+<script defer src="features.js"></script>
 <script defer src="translations.js"></script>
-
-<!-- Coeur applicatif + correctifs — ⚠️ à FUSIONNER également
-     (voir recommandation : app.js unique regroupant ces fichiers) -->
-<script defer src="ios-fix.js"></script>
-<script defer src="mobile-fiche-fix.js"></script>
-<script defer src="app.js?v=20260925"></script>
+<script defer src="app.js"></script>
+<script defer src="modal-enhancer.js"></script>
+<script defer src="modal-final-repair.js"></script>
 
 <!-- translations-all-fr.js DOIT se charger après app.js : il redéfinit
      translatedExercise() pour couvrir tout le catalogue automatiquement.
      Chargé avant (comme c'était le cas), app.js écrasait cette fonction
      sans erreur visible et cette traduction "complète" ne servait jamais. -->
-<script defer src="translations-all-fr.js"></script>
 
-<script defer src="search-enhancer.js"></script>
-<script defer src="search-clear.js"></script>
 <script defer src="modal-enhancer.js"></script>
-<script defer src="modal-scroll-fix.js"></script>
-<script defer src="fiche-app.js"></script>
 <script defer src="modal-final-repair.js"></script>
-<script defer src="card-enhancer.js"></script>
-<script defer src="program-link.js"></script>
-<script defer src="favorites.js"></script>
-<script defer src="keyboard-nav.js"></script>
-<script defer src="modal-a11y.js"></script>
-<script defer src="image-lazy.js"></script>
-<script defer src="ergonomie.js"></script>
 
 </body>
 </html>
