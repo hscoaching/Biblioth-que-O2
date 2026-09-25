@@ -19,7 +19,7 @@ async function adminUser(){
 function renderClients(){
   const q=norm($('searchClients').value);
   const arr=clients.filter(c=>norm([c.client_name,c.client_email].join(' ')).includes(q));
-  $('clients').innerHTML=arr.map(c=>'<button class="client '+(active?.id===c.id?'active':'')+'" onclick="openClient('+JSON.stringify(c.id)+')"><strong>'+esc(c.client_name||c.client_email||'Client')+'</strong><br><small>'+esc(c.client_email||'')+'</small><br><small>'+tm(c.last_message_at)+'</small>'+(unreadCounts[c.id]?'<br><span class="unread">'+unreadCounts[c.id]+' nouveau'+(unreadCounts[c.id]>1?'x':'')+'</span>':'')+'</button>').join('')||'<span class="muted">Aucun message.</span>';
+  $('clients').innerHTML=arr.map(c=>'<button class="client '+(active?.id===c.id?'active':'')+'" onclick="openClient(\''+esc(c.id)+'\')"><strong>'+esc(c.client_name||c.client_email||'Client')+'</strong><br><small>'+esc(c.client_email||'')+'</small><br><small>'+tm(c.last_message_at)+'</small>'+(unreadCounts[c.id]?'<br><span class="unread">'+unreadCounts[c.id]+' nouveau'+(unreadCounts[c.id]>1?'x':'')+'</span>':'')+'</button>').join('')||'<span class="muted">Aucun message.</span>';
 }
 
 async function loadConversations(){
