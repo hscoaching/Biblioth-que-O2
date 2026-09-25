@@ -7,23 +7,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="mobile-web-app-capable" content="yes" />
+
 <link rel="stylesheet" href="style.css" />
+<!-- Anciennement un <style> inline dans le <head> : extrait en fichier
+     séparé pour permettre la mise en cache navigateur entre les pages. -->
+<link rel="stylesheet" href="inline-styles-extracted.css" />
+
 <link rel="preconnect" href="https://exercise-dataset.com" crossorigin />
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+<link rel="preconnect" href="https://hcjoagpkgpqxgzjdyfvd.supabase.co" crossorigin />
+
 <title>HS Coaching — Bibliothèque O2</title>
-<style>
-.nav{margin-left:auto;margin-right:18px;display:flex;align-items:center;gap:3px;padding:3px;background:#151515;border:1px solid #292929;border-radius:12px}.nav a{color:#888;text-decoration:none;padding:8px 11px;border-radius:9px;font-size:11px;font-weight:800;transition:background .18s,color .18s,transform .18s}.nav a.active{background:#fff;color:#000;box-shadow:0 3px 12px #0005}.nav a:hover:not(.active){background:#222;color:#fff}.nav a:active{transform:scale(.97)}
-.hero{padding:58px 0 30px;max-width:820px}.hero h1{font-size:clamp(42px,7vw,74px);line-height:.98;letter-spacing:-3px;margin:14px 0 18px}.hero h1 span{color:#999}.hero-intro{font-size:15px!important;max-width:650px!important}.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.hero-link{display:inline-flex;align-items:center;gap:8px;padding:11px 14px;border-radius:11px;border:1px solid #333;background:#151515;color:#fff;text-decoration:none;font-weight:800;font-size:12px;transition:transform .16s,background .16s,border-color .16s}.hero-link:hover{transform:translateY(-2px);border-color:#555}.hero-link.primary{background:#fff;color:#000;border-color:#fff}
-.search{margin-top:24px!important;background:none!important;border:0!important;border-radius:0!important;height:auto!important;display:block!important;padding:0!important;box-shadow:none!important}.search-label{display:block!important;color:#777!important;font-size:9px!important;line-height:1.2!important;text-transform:uppercase;letter-spacing:1.1px!important;margin:0 0 7px 3px!important}.search>div{height:56px;display:flex;align-items:center;background:#151515;border:1px solid #303030;border-radius:14px;padding:0 17px;transition:border-color .2s,box-shadow .2s}.search>div:focus-within{border-color:#777;box-shadow:0 0 0 3px #ffffff08}.search>div>span{font-size:22px!important;color:#777!important;flex:0 0 auto}.search input{flex:1;background:none;border:0;outline:0;color:#fff;font-size:13px!important;padding-left:12px;min-width:0}.search input::placeholder{font-size:13px!important;color:#666}
-.categories{padding:10px 0 22px;margin-bottom:26px;overflow-x:auto;scrollbar-width:none}.categories::-webkit-scrollbar{display:none}.chip{font-weight:700;white-space:nowrap}.section-head h2{margin:0}.section-head .count-pill{background:#151515;border:1px solid #292929;border-radius:999px;padding:6px 9px}.grid{gap:15px}.card{border-radius:18px}.card-media .media-frame{height:200px}.card h3{font-size:17px}.card p{font-size:11px}.card-media .tag{color:#aaa}.card-media .tag:before{content:'↳ ';color:#666}
-.main-categories{display:flex;gap:8px;min-width:max-content}.subcategories{display:flex!important}.subchip{font-size:10px!important;padding:7px 10px!important;background:#151515}.subchip.active{background:#fff;color:#000}.categories{display:block!important}
-@media(max-width:650px){.topbar{height:64px;position:sticky;top:0;z-index:50;background:rgba(11,11,11,.92);backdrop-filter:blur(14px)}.brand{min-width:0;flex:1;padding-left:12px}.brand-mark{width:34px;height:34px}.brand strong{font-size:12px}.brand small{font-size:10px}.nav{display:flex;margin:0 8px 0 8px;gap:2px;padding:3px;border-radius:11px;flex:0 0 auto}.nav a{padding:7px 9px;font-size:10px}.hero{padding:38px 0 22px}.hero h1{font-size:44px;letter-spacing:-2px}.hero-intro{font-size:13px!important}.hero-actions{margin-top:19px}.hero-link{padding:10px 11px;font-size:11px;width:100%;justify-content:center}.search{margin-top:22px!important}.search>div{height:52px;border-radius:14px;padding:0 14px}.search-label{font-size:9px!important;letter-spacing:1.1px!important;margin-bottom:7px!important}.search>div>span{font-size:20px!important}.search input{font-size:11px!important}.search input::placeholder{font-size:11px!important}.categories{margin-bottom:20px;padding:8px 0 13px;display:flex;gap:7px}.grid{grid-template-columns:1fr 1fr;gap:10px}.card-media .media-frame{height:150px}.card{border-radius:14px}.card h3{font-size:15px}.card p{font-size:10px}footer{padding-bottom:22px}}
-@media(max-width:390px){.brand{padding-left:8px;gap:6px}.brand-mark{width:32px;height:32px}.brand strong{font-size:11px}.brand small{font-size:9px}.nav{margin-right:5px;margin-left:5px}.nav a{padding:7px 7px;font-size:9px}}
-@media(prefers-reduced-motion:reduce){.hero-link,.nav a{transition:none}}
-</style>
 </head>
 <body>
+
 <header class="topbar"><div class="brand"><span class="brand-mark">HS</span><div><strong>HS COACHING</strong><small>Bibliothèque O2</small></div></div></header>
+
 <main class="container">
 <section class="hero">
 <p class="eyebrow">BIBLIOTHÈQUE HS COACHING</p>
@@ -32,15 +31,53 @@
 <div class="hero-actions"><a class="hero-link primary" href="programmes.html">Voir mes programmes <span>→</span></a></div>
 <div class="search"><span class="search-label">Rechercher un exercice</span><div><span>⌕</span><input id="search" type="search" placeholder="Exercice, muscle, matériel…" autocomplete="off" /></div></div>
 </section>
+
 <section class="categories" aria-label="Catégories"><button class="chip active" data-category="all">Tous</button><button class="chip" data-category="jambes">Jambes</button><button class="chip" data-category="dos">Dos</button><button class="chip" data-category="pectoraux">Pectoraux</button><button class="chip" data-category="epaules">Épaules</button><button class="chip" data-category="bras">Bras</button><button class="chip" data-category="abdos">Abdos</button></section>
+
 <section id="exercices"><div class="section-head"><h2>Exercices</h2><span id="count" class="count-pill"></span></div><div id="exercise-grid" class="grid"></div><p id="empty" class="empty" hidden>Aucun exercice trouvé.</p></section>
 </main>
+
 <dialog id="exercise-modal"><button class="close" id="close-modal" aria-label="Fermer">×</button><div id="modal-content"></div></dialog>
+
 <footer>HS Coaching · Régularité & dépassement de soi</footer>
-<script>window.HS_SUPABASE_CONFIG={url:"https://hcjoagpkgpqxgzjdyfvd.supabase.co",key:"sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB"};</script><script src="client-ui.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="translations-fr.js"></script><script src="translations-extra-fr.js"></script><script src="translations-batch-2-fr.js"></script><script src="translations-batch-3-fr.js"></script><script src="translations-batch-4-fr.js"></script><script src="translations-all-fr.js"></script>
-<script src="ios-fix.js"></script><script src="mobile-fiche-fix.js"></script><script src="app.js?v=20260925"></script><script src="search-enhancer.js"></script><script src="search-clear.js"></script><script src="modal-enhancer.js"></script><script src="modal-scroll-fix.js"></script><script src="fiche-app.js"></script><script src="modal-final-repair.js"></script><script src="card-enhancer.js"></script><script src="program-link.js"></script><script src="favorites.js"></script><script src="keyboard-nav.js"></script><script src="modal-a11y.js"></script><script src="image-lazy.js"></script><script src="ergonomie.js"></script>
+
+<!-- Config Supabase : reste inline et NON deferred, car les scripts
+     suivants en ont besoin dès leur exécution. -->
+<script>window.HS_SUPABASE_CONFIG={url:"https://hcjoagpkgpqxgzjdyfvd.supabase.co",key:"sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB"};</script>
+
+<!-- Librairies tierces : defer, exécutées dans l'ordre d'apparition -->
+<script defer src="https://cdn.jsdelivr.net/npm/@Supabase/supabase-js@2"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script defer src="client-ui.js"></script>
+
+<!-- Traductions manuelles (fiches éditoriales prioritaires) -->
+<script defer src="translations.js"></script>
+
+<!-- Coeur applicatif + correctifs — ⚠️ à FUSIONNER également
+     (voir recommandation : app.js unique regroupant ces fichiers) -->
+<script defer src="ios-fix.js"></script>
+<script defer src="mobile-fiche-fix.js"></script>
+<script defer src="app.js?v=20260925"></script>
+
+<!-- translations-all-fr.js DOIT se charger après app.js : il redéfinit
+     translatedExercise() pour couvrir tout le catalogue automatiquement.
+     Chargé avant (comme c'était le cas), app.js écrasait cette fonction
+     sans erreur visible et cette traduction "complète" ne servait jamais. -->
+<script defer src="translations-all-fr.js"></script>
+
+<script defer src="search-enhancer.js"></script>
+<script defer src="search-clear.js"></script>
+<script defer src="modal-enhancer.js"></script>
+<script defer src="modal-scroll-fix.js"></script>
+<script defer src="fiche-app.js"></script>
+<script defer src="modal-final-repair.js"></script>
+<script defer src="card-enhancer.js"></script>
+<script defer src="program-link.js"></script>
+<script defer src="favorites.js"></script>
+<script defer src="keyboard-nav.js"></script>
+<script defer src="modal-a11y.js"></script>
+<script defer src="image-lazy.js"></script>
+<script defer src="ergonomie.js"></script>
+
 </body>
 </html>
