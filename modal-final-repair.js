@@ -75,9 +75,9 @@
         return;
       }
       try{
-        const r=await fetch(DATA,{cache:'no-store'});
-        const json=await r.json();
-        const all=json.exercises||[];
+        const all=(window.HS_EXERCISES&&window.HS_EXERCISES.length)
+          ? window.HS_EXERCISES
+          : await new Promise(resolve=>{window.addEventListener('hs-exercises-ready',()=>resolve(window.HS_EXERCISES||[]),{once:true})});
         const e=all.find(x=>String(x.id)===String(id));
         if(!e)return;
         const made=imageBox(e);
