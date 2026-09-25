@@ -88,7 +88,7 @@
     const title=content.querySelector('h2');if(!title)return;
     styles();
     if(content.querySelector('.hs-meta'))return;
-    dataPromise=dataPromise||fetch(DATA_URL,{cache:'no-store'}).then(r=>r.json()).then(x=>x.exercises||[]).catch(()=>[]);
+    dataPromise=dataPromise||((window.HS_EXERCISES&&window.HS_EXERCISES.length)?Promise.resolve(window.HS_EXERCISES):new Promise(resolve=>{window.addEventListener('hs-exercises-ready',()=>resolve(window.HS_EXERCISES||[]),{once:true})}));
     dataPromise.then(all=>{const e=all.find(x=>String(x.id)===String(id));if(!e)return;
       const meta=document.createElement('div');meta.className='hs-meta';
       meta.innerHTML='<div class="hs-meta-item"><span class="hs-meta-label">Matériel</span><span class="hs-meta-value">'+eq(e.equipment||'bodyweight')+'</span></div><div class="hs-meta-item"><span class="hs-meta-label">Ciblage</span><span class="hs-meta-value">'+(e.primary_muscles||[]).slice(0,2).map(label).join(' · ')+'</span></div>';
