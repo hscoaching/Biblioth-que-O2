@@ -100,11 +100,14 @@ function render(){
   b.textContent=remaining?`Afficher ${Math.min(PAGE_SIZE,remaining)} autres exercices`:'';
 }
 function normalizeExercises(list){
-  return (list||[]).map(e=>{
+  const normalized=(list||[]).map(e=>{
     const cat=categoryFor(e);
     const tr=translatedExercise(e);
     return {...e,id:e.id||slugify(e.name_en||e.name),name:tr.name,description:tr.description,instructions:tr.instructions,tips:tr.tips,muscles:[...(e.primary_muscles||[]),...(e.secondary_muscles||[])].flatMap(m=>{const x=String(m);const map={biceps_brachii:'biceps',triceps_brachii:'triceps',posterior_deltoid:'rear_deltoid',forearm_flexors:'forearms',forearm_extensors:'forearms',brachioradialis:'forearms',brachialis:'biceps',gastrocnemius:'calves',soleus:'calves',gluteus_maximus:'glutes'};return [x,map[x]].filter(Boolean)}),equipmentLabel:String(e.equipment||'Poids du corps').replace(/_/g,' '),bodyPartLabel:cat};
   });
+  window.HS_EXERCISES=normalized;
+  window.dispatchEvent(new CustomEvent('hs-exercises-ready'));
+  return normalized;
 }
 async function loadLibrary(){
   grid.innerHTML='<p class="empty">Chargement de la bibliothèque…</p>';
@@ -146,4 +149,4 @@ async function refreshLibrary(initial=false){
     console.warn('HS Coaching: actualisation différée impossible',err);
   }
 }
-let searchTimer;search.oninput=()=>{clearTimeout(searchTimer);visibleLimit=PAGE_SIZE;searchTimer=setTimeout(render,120)};document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});const categoryObserver=new MutationObserver(()=>cleanCategoryButtons());if(categoriesEl)categoryObserver.observe(categoriesEl,{childList:true,subtree:true});loadLibrary();
+document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});const categoryObserver=new MutationObserver(()=>cleanCategoryButtons());if(categoriesEl)categoryObserver.observe(categoriesEl,{childList:true,subtree:true});loadLibrary();
