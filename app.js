@@ -41,7 +41,7 @@ function translatedExercise(e){const fr=frOverride(e);return {name:fr?.name||aut
 function mediaHtml(e,modalView=false){const imgs=e.images||{};const flat=imgs.flat||{};const a=imageUrl(flat.start||flat.main);const b=imageUrl(flat.peak);if(!a)return '';if(b)return `<div class="media-frame media-pair ${modalView?'modal-media':''}"><img class="media-a" src="${a}" alt="Position de départ — ${e.name}" loading="lazy"><img class="media-b" src="${b}" alt="Position finale — ${e.name}" loading="lazy"></div>`;return `<div class="media-frame ${modalView?'modal-media':''}"><img src="${a}" alt="Illustration — ${e.name}" loading="lazy"></div>`}
 function cleanCategoryButtons(){if(!categoriesEl)return;const seen=new Set();categoriesEl.querySelectorAll('button').forEach(b=>{const label=b.textContent.trim();if(label==='Fessiers'&&b.classList.contains('chip')&&!b.classList.contains('subchip')){b.remove();return}if(b.classList.contains('subchip')){const key=label.toLowerCase();if(seen.has(key))b.remove();else seen.add(key)}})}
 function renderCategories(){
-  const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos','full','cardio','mobilite'];
+  const wanted=['all','jambes','dos','pectoraux','epaules','bras','abdos'];
   const main=wanted.map(c=>`<button class="chip ${category===c?'active':''}" data-category="${c}">${categoryNames[c]}</button>`).join('');
   const subs=muscleFilters[category]||[];
   const subHtml=subs.length?`<div class="subcategories" aria-label="Filtrer par muscle">${subs.filter((v,i,a)=>a.findIndex(x=>x[1]===v[1])===i).map(([key,label])=>`<button class="chip subchip ${muscleFilter===key?'active':''}" data-muscle="${key}">${label}</button>`).join('')}</div>`:'';
