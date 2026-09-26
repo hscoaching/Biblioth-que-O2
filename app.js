@@ -100,14 +100,11 @@ function render(){
   b.textContent=remaining?`Afficher ${Math.min(PAGE_SIZE,remaining)} autres exercices`:'';
 }
 function normalizeExercises(list){
-  const normalized=(list||[]).map(e=>{
+  return (list||[]).map(e=>{
     const cat=categoryFor(e);
     const tr=translatedExercise(e);
     return {...e,id:e.id||slugify(e.name_en||e.name),name:tr.name,description:tr.description,instructions:tr.instructions,tips:tr.tips,muscles:[...(e.primary_muscles||[]),...(e.secondary_muscles||[])].flatMap(m=>{const x=String(m);const map={biceps_brachii:'biceps',triceps_brachii:'triceps',posterior_deltoid:'rear_deltoid',forearm_flexors:'forearms',forearm_extensors:'forearms',brachioradialis:'forearms',brachialis:'biceps',gastrocnemius:'calves',soleus:'calves',gluteus_maximus:'glutes'};return [x,map[x]].filter(Boolean)}),equipmentLabel:String(e.equipment||'Poids du corps').replace(/_/g,' '),bodyPartLabel:cat};
   });
-  window.HS_EXERCISES=normalized;
-  window.dispatchEvent(new CustomEvent('hs-exercises-ready'));
-  return normalized;
 }
 async function loadLibrary(){
   grid.innerHTML='<p class="empty">Chargement de la bibliothèque…</p>';
@@ -115,6 +112,7 @@ async function loadLibrary(){
     const cached=getCachedLibrary();
     if(cached&&cached.exercises.length){
       exercises=normalizeExercises(cached.exercises);
+      window.HS_EXERCISES=exercises;
       renderCategories();render();openFromUrl();
       if(Date.now()-(cached.savedAt||0)>CACHE_TTL)refreshLibrary();
       return;
@@ -125,6 +123,7 @@ async function loadLibrary(){
     const cached=getCachedLibrary();
     if(cached&&cached.exercises.length){
       exercises=normalizeExercises(cached.exercises);
+      window.HS_EXERCISES=exercises;
       renderCategories();render();openFromUrl();
     }else{
       grid.innerHTML='<p class="empty">Impossible de charger la bibliothèque. Recharge la page.</p>';
@@ -141,6 +140,7 @@ async function refreshLibrary(initial=false){
     if(!raw.length)throw new Error('Bibliothèque vide');
     setCachedLibrary(raw);
     exercises=normalizeExercises(raw);
+    window.HS_EXERCISES=exercises;
     visibleLimit=PAGE_SIZE;
     renderCategories();render();
     if(initial)openFromUrl();
@@ -149,4 +149,8 @@ async function refreshLibrary(initial=false){
     console.warn('HS Coaching: actualisation différée impossible',err);
   }
 }
+// La recherche texte est gérée exclusivement par search-enhancer.js
+// (filtrage/tri direct sur les cartes déjà rendues, avec synonymes).
+// app.js ne reconstruit plus la grille à la frappe : les deux moteurs
+// de recherche se marchaient dessus (double filtrage, scintillement).
 document.querySelector('#close-modal').onclick=()=>{modal.close();history.pushState({},'',window.location.pathname)};modal.addEventListener('click',e=>{if(e.target===modal){modal.close();history.pushState({},'',window.location.pathname)}});window.addEventListener('popstate',()=>{if(!new URLSearchParams(window.location.search).get('exercice')&&modal.open)modal.close()});const categoryObserver=new MutationObserver(()=>cleanCategoryButtons());if(categoriesEl)categoryObserver.observe(categoriesEl,{childList:true,subtree:true});loadLibrary();
