@@ -75,9 +75,14 @@
         return;
       }
       try{
-        const all=(window.HS_EXERCISES&&window.HS_EXERCISES.length)
-          ? window.HS_EXERCISES
-          : await new Promise(resolve=>{window.addEventListener('hs-exercises-ready',()=>resolve(window.HS_EXERCISES||[]),{once:true})});
+        // Réutilise le cache déjà chargé par app.js si disponible :
+        // évite un 2e/3e téléchargement du dataset entier par fiche ouverte.
+        let all=window.HS_EXERCISES;
+        if(!all||!all.length){
+          const r=await fetch(DATA,{cache:'no-store'});
+          const json=await r.json();
+          all=json.exercises||[];
+        }
         const e=all.find(x=>String(x.id)===String(id));
         if(!e)return;
         const made=imageBox(e);
