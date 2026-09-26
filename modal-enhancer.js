@@ -50,7 +50,11 @@
   };
   const label=m=>muscles[m]||String(m||'').replace(/_/g,' '), eq=e=>equipment[e]||String(e||'').replace(/_/g,' ');
   function styles(){if(document.querySelector('#hs-modal-style'))return;const s=document.createElement('style');s.id='hs-modal-style';s.textContent=`
-    #exercise-modal{padding:0!important;border:0;border-radius:22px;max-width:720px;width:calc(100% - 28px);background:#080808;color:#fff;box-shadow:0 24px 80px rgba(0,0,0,.65);overflow:hidden}
+    #exercise-modal{padding:0!important;border:0;border-radius:22px;max-width:720px;width:calc(100% - 28px);background:#080808;color:#fff;box-shadow:0 24px 80px rgba(0,0,0,.65);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#444 transparent}
+    #exercise-modal::-webkit-scrollbar{width:8px}
+    #exercise-modal::-webkit-scrollbar-track{background:transparent}
+    #exercise-modal::-webkit-scrollbar-thumb{background:#444;border-radius:8px}
+    #exercise-modal::-webkit-scrollbar-thumb:hover{background:#666}
     #exercise-modal::backdrop{background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}
     #modal-content{padding:0}
     #modal-content .modal{padding:30px 30px 34px}
@@ -84,6 +88,8 @@
   `;document.head.appendChild(s)}
   let dataPromise;
   function getExercises(){
+    // Réutilise le cache déjà chargé par app.js si disponible :
+    // évite de retélécharger le dataset entier à chaque fiche ouverte.
     if(window.HS_EXERCISES&&window.HS_EXERCISES.length)return Promise.resolve(window.HS_EXERCISES);
     return fetch(DATA_URL,{cache:'no-store'}).then(r=>r.json()).then(x=>x.exercises||[]).catch(()=>[]);
   }
