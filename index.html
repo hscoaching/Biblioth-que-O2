@@ -49,12 +49,25 @@
 <script defer src="https://cdn.jsdelivr.net/npm/@Supabase/supabase-js@2"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+<!-- Traductions manuelles : doit être disponible avant le coeur applicatif -->
 <script defer src="translations.js"></script>
+
+<!-- Fonctionnalités fusionnées des anciens correctifs.
+     DOIT rester avant app.js : notamment le pont fetch vers Supabase
+     et les correctifs qui attendent le catalogue partagé. -->
 <script defer src="features.js"></script>
+
+<!-- Coeur applicatif -->
 <script defer src="app.js?v=20260925"></script>
+
+<!-- Couverture française automatique du catalogue.
+     Chargée après app.js pour remplacer translatedExercise() sans être écrasée. -->
+<script defer src="translations-all-fr.js"></script>
+
+<!-- Recherche avancée, puis correctifs de fiche -->
+<script defer src="search-enhancer.js"></script>
 <script defer src="modal-enhancer.js"></script>
 <script defer src="modal-final-repair.js"></script>
-
 
 </body>
 </html>
