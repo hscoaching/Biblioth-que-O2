@@ -9,6 +9,8 @@
 <meta name="mobile-web-app-capable" content="yes" />
 
 <link rel="stylesheet" href="style.css" />
+<!-- Anciennement un <style> inline dans le <head> : extrait en fichier
+     séparé pour permettre la mise en cache navigateur entre les pages. -->
 <link rel="stylesheet" href="inline-styles-extracted.css" />
 
 <link rel="preconnect" href="https://exercise-dataset.com" crossorigin />
@@ -39,18 +41,43 @@
 
 <footer>HS Coaching · Régularité & dépassement de soi</footer>
 
+<!-- Config Supabase : reste inline et NON deferred, car les scripts
+     suivants en ont besoin dès leur exécution. -->
 <script>window.HS_SUPABASE_CONFIG={url:"https://hcjoagpkgpqxgzjdyfvd.supabase.co",key:"sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB"};</script>
 
-<script defer src="https://cdn.jsdelivr.net/npm/@Supabase/supabase-js@2"></script>
+<!-- Librairies tierces : defer, exécutées dans l'ordre d'apparition -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script defer src="client-ui.js"></script>
 
-<script defer src="features.js"></script>
+<!-- Traductions manuelles (fiches éditoriales prioritaires) -->
+<script defer src="translations.js"></script>
 
+<!-- Coeur applicatif + correctifs — ⚠️ à FUSIONNER également
+     (voir recommandation : app.js unique regroupant ces fichiers) -->
+<script defer src="ios-fix.js"></script>
+<script defer src="mobile-fiche-fix.js"></script>
 <script defer src="app.js?v=20260925"></script>
 
+<!-- translations-all-fr.js DOIT se charger après app.js : il redéfinit
+     translatedExercise() pour couvrir tout le catalogue automatiquement.
+     Chargé avant (comme c'était le cas), app.js écrasait cette fonction
+     sans erreur visible et cette traduction "complète" ne servait jamais. -->
+<script defer src="translations-all-fr.js"></script>
+
 <script defer src="search-enhancer.js"></script>
+<script defer src="search-clear.js"></script>
 <script defer src="modal-enhancer.js"></script>
+<script defer src="modal-scroll-fix.js"></script>
+<script defer src="fiche-app.js"></script>
 <script defer src="modal-final-repair.js"></script>
+<script defer src="card-enhancer.js"></script>
+<script defer src="program-link.js"></script>
+<script defer src="favorites.js"></script>
+<script defer src="keyboard-nav.js"></script>
+<script defer src="modal-a11y.js"></script>
+<script defer src="image-lazy.js"></script>
+<script defer src="ergonomie.js"></script>
 
 </body>
 </html>
