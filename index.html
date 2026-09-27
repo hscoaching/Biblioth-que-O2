@@ -9,8 +9,6 @@
 <meta name="mobile-web-app-capable" content="yes" />
 
 <link rel="stylesheet" href="style.css" />
-<!-- Anciennement un <style> inline dans le <head> : extrait en fichier
-     séparé pour permettre la mise en cache navigateur entre les pages. -->
 <link rel="stylesheet" href="inline-styles-extracted.css" />
 
 <link rel="preconnect" href="https://exercise-dataset.com" crossorigin />
@@ -41,30 +39,15 @@
 
 <footer>HS Coaching · Régularité & dépassement de soi</footer>
 
-<!-- Config Supabase : reste inline et NON deferred, car les scripts
-     suivants en ont besoin dès leur exécution. -->
 <script>window.HS_SUPABASE_CONFIG={url:"https://hcjoagpkgpqxgzjdyfvd.supabase.co",key:"sb_publishable_ezHZ_co222B09HGiSeCkyw_Nw4G5FLB"};</script>
 
-<!-- Librairies tierces : defer, exécutées dans l'ordre d'apparition -->
 <script defer src="https://cdn.jsdelivr.net/npm/@Supabase/supabase-js@2"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<!-- Traductions manuelles : doit être disponible avant le coeur applicatif -->
-<script defer src="translations.js"></script>
-
-<!-- Fonctionnalités fusionnées des anciens correctifs.
-     DOIT rester avant app.js : notamment le pont fetch vers Supabase
-     et les correctifs qui attendent le catalogue partagé. -->
 <script defer src="features.js"></script>
 
-<!-- Coeur applicatif -->
 <script defer src="app.js?v=20260925"></script>
 
-<!-- Couverture française automatique du catalogue.
-     Chargée après app.js pour remplacer translatedExercise() sans être écrasée. -->
-<script defer src="translations-all-fr.js"></script>
-
-<!-- Recherche avancée, puis correctifs de fiche -->
 <script defer src="search-enhancer.js"></script>
 <script defer src="modal-enhancer.js"></script>
 <script defer src="modal-final-repair.js"></script>
